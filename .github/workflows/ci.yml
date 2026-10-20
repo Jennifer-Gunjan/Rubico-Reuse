@@ -2,6 +2,7 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -14,3 +15,19 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+  live-api:
+    # Real Supabase project. Runs after merges to main, or by hand from the Actions tab. Needs the four secrets below.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: check
+    runs-on: ubuntu-latest
+    env:
+      LIVE_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL }}
+      LIVE_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY }}
+      LIVE_TEST_EMAIL: ${{ secrets.LIVE_TEST_EMAIL }}
+      LIVE_TEST_PASSWORD: ${{ secrets.LIVE_TEST_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npx vitest run tests/live
