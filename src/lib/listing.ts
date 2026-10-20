@@ -30,3 +30,7 @@ export function validateListing(i: ListingInput): string | null {
 
 /** Strip characters that would break a PostgREST or() filter or act as LIKE wildcards. */
 export const cleanSearch = (q: string) => q.replace(/[,()%_\\*]/g, " ").trim().slice(0, 60);
+
+/** Photo slots (0..3) not used by kept photos, lowest first; at most `count` returned. */
+export const freePositions = (kept: number[], count: number) =>
+  [0, 1, 2, 3].filter((p) => !kept.includes(p)).slice(0, count);
