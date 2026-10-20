@@ -1,0 +1,31 @@
+export const LISTING_STATUSES = [
+  "available",
+  "requested",
+  "accepted",
+  "given",
+  "lent",
+  "returned",
+  "closed",
+] as const;
+export const LISTING_TYPES = ["donate", "exchange", "sell", "lend"] as const;
+
+export type ListingStatus = (typeof LISTING_STATUSES)[number];
+export type ListingType = (typeof LISTING_TYPES)[number];
+
+// Mirrors the database trigger in supabase/migrations. Keep the two in step.
+const MOVES: Record<ListingStatus, ListingStatus[]> = {
+  available: ["requested", "closed"],
+  requested: ["requested", "available", "accepted", "closed"],
+  accepted: ["given", "lent", "available"],
+  lent: ["returned"],
+  returned: ["available"],
+  closed: ["available"],
+  given: [],
+};
+
+export function canTransition(from: ListingStatus, to: ListingStatus, type: ListingType): boolean {
+  if (!MOVES[from].includes(to)) return false;
+  if (to === "given") return type !== "lend";
+  if (to === "lent" || from === "lent" || from === "returned") return type === "lend";
+  return true;
+}

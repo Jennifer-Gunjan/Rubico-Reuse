@@ -1,0 +1,62 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/inter-tight";
+@import "@fontsource/ibm-plex-mono/400.css";
+
+/* Warm civic ledger tokens. Vermilion is rationed: buttons, icons, dots, thin rules only. */
+:root {
+  --bg: #f4ebdd;
+  --surface: #faf4ea;
+  --card: #ffffff;
+  --ink: #121212;
+  --muted: #6f6a62; /* captions only; text people must read uses ink */
+  --border: #d8cfc2;
+  --accent: #ca352b;
+  --accent-active: #a82e25;
+  --accent-soft: #e4a59d;
+  --dark: #2a2a2a;
+  --radius-control: 6px;
+  --radius-card: 8px;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); color: var(--ink); }
+body {
+  margin: 0;
+  font-family: "Inter Variable", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+h1, h2, h3, .label { font-family: "Inter Tight Variable", "Inter Variable", system-ui, sans-serif; }
+h1 { font-size: clamp(2.25rem, 6vw, 3.75rem); line-height: 1.1; letter-spacing: -0.025em; margin: 0 0 16px; }
+h2 { font-size: 1.5rem; letter-spacing: -0.025em; margin: 0 0 8px; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+.muted { color: var(--muted); font-size: 0.875rem; }
+.mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.875rem; }
+
+.nav { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.logo { display: inline-flex; align-items: center; gap: 8px; font-family: "Inter Tight Variable", sans-serif; font-weight: 700; font-size: 1.125rem; text-decoration: none; }
+.logo svg { color: var(--accent); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 0 20px; border-radius: var(--radius-control);
+  font: inherit; font-weight: 600; cursor: pointer; text-decoration: none;
+  border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+.btn:hover { background: var(--accent-active); border-color: var(--accent-active); }
+.btn.secondary { background: transparent; color: var(--ink); border-color: var(--dark); }
+.btn.secondary:hover { background: var(--surface); }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 32px; }
+.field { display: block; width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--card); font: inherit; color: var(--ink); }
+.error { border-left: 3px solid var(--accent); background: var(--card); padding: 8px 12px; margin: 0 0 16px; }
+
+.hero { padding: 64px 0 48px; }
+.hero p.lead { font-size: 1.25rem; max-width: 36rem; }
+.login { display: grid; gap: 16px; max-width: 28rem; }
+@media (max-width: 640px) { .hero { padding: 32px 0; } .card { padding: 20px; } }
