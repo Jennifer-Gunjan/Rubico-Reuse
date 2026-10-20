@@ -1,0 +1,45 @@
+import { redirect } from "next/navigation";
+import { Nav } from "@/components/Nav";
+import { LOCATIONS } from "@/lib/listing";
+import { supabaseServer } from "@/lib/supabase/server";
+
+async function save(form: FormData) {
+  "use server";
+  const sb = await supabaseServer();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) redirect("/");
+  const name = String(form.get("name") ?? "").trim();
+  const location = String(form.get("location") ?? "");
+  const teams = String(form.get("teams_handle") ?? "").trim();
+  if (!name || !teams || !(LOCATIONS as readonly string[]).includes(location)) redirect("/profile?error=1");
+  const { error } = await sb.from("profiles").update({ name, location, teams_handle: teams }).eq("id", user.id);
+  redirect(error ? "/profile?error=1" : "/browse");
+}
+
+export default async function Profile({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const sb = await supabaseServer();
+  const { data: { user } } = await sb.auth.getUser();
+  const { data: p } = await sb.from("profiles").select("name,location,teams_handle").eq("id", user!.id).single();
+  const { error } = await searchParams;
+  return (
+    <>
+      <Nav />
+      <main className="wrap hero">
+        <h1>Your profile</h1>
+        <p className="muted">Name, city and Teams handle are needed before you can post or request. Your Teams handle is shown only to the person you are matched with.</p>
+        <form action={save} className="card login" style={{ marginTop: 24 }}>
+          {error && <p className="error" role="alert">Fill in every field.</p>}
+          <label>Name<input className="field" name="name" defaultValue={p?.name ?? ""} required /></label>
+          <label>City
+            <select className="field" name="location" defaultValue={p?.location ?? ""} required>
+              <option value="" disabled>Choose</option>
+              {LOCATIONS.map((l) => <option key={l}>{l}</option>)}
+            </select>
+          </label>
+          <label>Teams handle<input className="field" name="teams_handle" defaultValue={p?.teams_handle ?? ""} placeholder="name@rubicotech.com" required /></label>
+          <button className="btn" type="submit">Save</button>
+        </form>
+      </main>
+    </>
+  );
+}

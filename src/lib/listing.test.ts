@@ -1,0 +1,25 @@
+import { describe, expect, it } from "vitest";
+import { cleanSearch, validateListing, type ListingInput } from "./listing";
+
+const ok: ListingInput = { title: "Study desk", description: "Solid wood", category: "Furniture", condition: "good", type: "donate", location: "Dehradun" };
+
+describe("validateListing", () => {
+  it("accepts a valid donation", () => expect(validateListing(ok)).toBeNull());
+  it("rejects short title", () => expect(validateListing({ ...ok, title: "ab" })).toMatch(/Title/));
+  it("rejects bad location", () => expect(validateListing({ ...ok, location: "Delhi" })).toMatch(/Haridwar/));
+  it("requires price for sell only", () => {
+    expect(validateListing({ ...ok, type: "sell" })).toMatch(/price/);
+    expect(validateListing({ ...ok, type: "sell", asking_price: "-5" })).toMatch(/price/);
+    expect(validateListing({ ...ok, type: "sell", asking_price: "500" })).toBeNull();
+  });
+  it("blocks banned items in title, description or wanted-in-return", () => {
+    expect(validateListing({ ...ok, title: "Spare medicines" })).toMatch(/cannot be listed/);
+    expect(validateListing({ ...ok, description: "an old Rifle" })).toMatch(/cannot be listed/);
+    expect(validateListing({ ...ok, type: "exchange", wanted_in_return: "pistol" })).toMatch(/cannot be listed/);
+  });
+  it("allows glue gun", () => expect(validateListing({ ...ok, title: "Glue gun" })).toBeNull());
+});
+
+describe("cleanSearch", () => {
+  it("removes filter-breaking characters", () => expect(cleanSearch("a,b)(c%d_e")).toBe("a b  c d e"));
+});

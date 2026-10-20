@@ -60,3 +60,17 @@ a { color: inherit; }
 .hero p.lead { font-size: 1.25rem; max-width: 36rem; }
 .login { display: grid; gap: 16px; max-width: 28rem; }
 @media (max-width: 640px) { .hero { padding: 32px 0; } .card { padding: 20px; } }
+
+.filters { display: grid; gap: 8px; grid-template-columns: 2fr 1fr 1fr 1fr auto; margin: 16px 0 24px; }
+.grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.tile { padding: 16px; }
+.tile a { text-decoration: none; }
+.tile img, .noimg { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius-control); background: var(--surface); display: grid; place-items: center; }
+.tile h2 { font-size: 1.125rem; margin: 8px 0 0; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); display: inline-block; }
+.dot.hot { background: var(--accent); }
+.gallery { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
+.gallery img { max-width: 280px; border-radius: var(--radius-card); }
+label { display: grid; gap: 4px; font-weight: 600; }
+@media (max-width: 760px) { .filters { grid-template-columns: 1fr; } }
