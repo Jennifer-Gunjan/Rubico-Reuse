@@ -30,4 +30,9 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20, cache: npm }
       - run: npm ci
+      - name: Fail if secrets are missing (otherwise the tests would silently skip)
+        run: |
+          for v in LIVE_SUPABASE_URL LIVE_SUPABASE_ANON_KEY LIVE_TEST_EMAIL LIVE_TEST_PASSWORD; do
+            [ -n "${!v}" ] || { echo "Missing secret $v"; exit 1; }
+          done
       - run: npx vitest run tests/live
