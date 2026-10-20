@@ -23,3 +23,12 @@ describe("validateListing", () => {
 describe("cleanSearch", () => {
   it("removes filter-breaking characters", () => expect(cleanSearch("a,b)(c%d_e")).toBe("a b  c d e"));
 });
+
+import { freePositions } from "./listing";
+describe("freePositions", () => {
+  it("fills gaps first and never exceeds 4 slots", () => {
+    expect(freePositions([0, 2], 5)).toEqual([1, 3]);
+    expect(freePositions([], 2)).toEqual([0, 1]);
+    expect(freePositions([0, 1, 2, 3], 1)).toEqual([]);
+  });
+});
