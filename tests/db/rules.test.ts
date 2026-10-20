@@ -188,4 +188,10 @@ describe("wanted board and profiles", () => {
     await expect(as(db, alice, () => db.query(`update profiles set role = 'admin' where id = $1`, [alice]))).rejects.toThrow();
     await expect(as(db, alice, () => db.query(`update profiles set email = 'a@rubicotech.in' where id = $1`, [alice]))).rejects.toThrow();
   });
+  it("owner can edit while Available; type and owner can never change", async () => {
+    const l = await mkListing(db, owner);
+    await as(db, owner, () => db.query(`update listings set title = 'Better title' where id = $1`, [l]));
+    await expect(as(db, owner, () => db.query(`update listings set type = 'sell', asking_price = 10 where id = $1`, [l]))).rejects.toThrow();
+    await expect(as(db, owner, () => db.query(`update listings set owner_id = $2 where id = $1`, [l, alice]))).rejects.toThrow();
+  });
 });
