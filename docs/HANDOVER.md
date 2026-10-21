@@ -95,6 +95,6 @@ Also edit `ALLOWED_DOMAINS` in `src/lib/domain.ts` when adding a domain: the ser
 | `tests/api` | login callback, sign out, page protection | 11 |
 | `tests/concurrency` | simultaneous accepts and other races on real Postgres | 4 |
 | `tests/live` | the real Supabase project's API rules | 6 |
-| `tests/e2e` | browser: anonymous checks, accessibility, two-account journey | 10 + gated |
+| `tests/e2e` | browser: anonymous checks and login-page accessibility (13), plus the two-account journey and signed-in accessibility (gated) | 13 + gated |
 
 Run locally: `npm test` (unit, API, database). `npm run e2e` needs a build first.
