@@ -21,8 +21,9 @@ jobs:
     needs: check
     runs-on: ubuntu-latest
     env:
-      LIVE_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL }}
-      LIVE_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY }}
+      # URL and publishable key are public (they ship in the website), so a missing secret falls back to them.
+      LIVE_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL || 'https://mdznlxohnjfbybihbtfe.supabase.co' }}
+      LIVE_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY || 'sb_publishable_Ewt_4WTCXYOsfIn6IUydMg_tefg8Xjp' }}
       LIVE_TEST_EMAIL: ${{ secrets.LIVE_TEST_EMAIL }}
       LIVE_TEST_PASSWORD: ${{ secrets.LIVE_TEST_PASSWORD }}
     steps:
@@ -32,7 +33,9 @@ jobs:
       - run: npm ci
       - name: Fail if secrets are missing (otherwise the tests would silently skip)
         run: |
+          missing=""
           for v in LIVE_SUPABASE_URL LIVE_SUPABASE_ANON_KEY LIVE_TEST_EMAIL LIVE_TEST_PASSWORD; do
-            [ -n "${!v}" ] || { echo "Missing secret $v"; exit 1; }
+            [ -n "${!v}" ] || missing="$missing $v"
           done
+          [ -z "$missing" ] || { echo "Missing:$missing"; exit 1; }
       - run: npx vitest run tests/live
