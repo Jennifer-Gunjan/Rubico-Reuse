@@ -1,25 +1,15 @@
-import Image from "next/image";
 import Link from "next/link";
+import { ListingGrid } from "@/components/ListingGrid";
 import { Nav } from "@/components/Nav";
-import { CATEGORIES, LOCATIONS, TYPES, cleanSearch } from "@/lib/listing";
-import { photoUrl } from "@/lib/photo";
+import { CATEGORIES, LOCATIONS, TYPES } from "@/lib/listing";
+import { liveListings } from "@/lib/public";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type SP = { q?: string; category?: string; location?: string; type?: string };
 
 export default async function Browse({ searchParams }: { searchParams: Promise<SP> }) {
   const sp = await searchParams;
-  const sb = await supabaseServer();
-  let query = sb.from("listings")
-    .select("id,title,type,category,location,asking_price,status,listing_images(storage_path,position)")
-    .in("status", ["available", "requested"]).order("created_at", { ascending: false }).limit(60);
-  const q = cleanSearch(sp.q ?? "");
-  if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
-  if (sp.category) query = query.eq("category", sp.category);
-  if (sp.location) query = query.eq("location", sp.location);
-  if (sp.type) query = query.eq("type", sp.type);
-  const { data: items } = await query;
-
+  const items = await liveListings(await supabaseServer(), sp);
   return (
     <>
       <Nav />
@@ -38,28 +28,9 @@ export default async function Browse({ searchParams }: { searchParams: Promise<S
           </select>
           <button className="btn" type="submit">Search</button>
         </form>
-        {!items?.length ? (
+        {!items.length ? (
           <p className="card" style={{ marginTop: 24 }}>Nothing here yet. <Link href="/listings/new">Post the first item</Link>.</p>
-        ) : (
-          <ul className="grid">
-            {items.map((l) => {
-              const img = [...(l.listing_images ?? [])].sort((a, b) => a.position - b.position)[0];
-              return (
-                <li key={l.id} className="card tile">
-                  <Link href={`/listings/${l.id}`}>
-                    <div className="imgbox">
-                      {img ? <Image src={photoUrl(img.storage_path)} alt="" fill sizes="(max-width: 640px) 100vw, 260px" style={{ objectFit: "cover" }} /> : <span className="mono muted">No photo</span>}
-                    </div>
-                    <h2>{l.title}</h2>
-                  </Link>
-                  <p className="mono muted">{l.category} · {l.location}</p>
-                  <p><span className="badge"><i className={l.status === "requested" ? "dot hot" : "dot"} />{l.status === "requested" ? "Requested" : "Available"}</span>{" "}
-                    {TYPES[l.type as keyof typeof TYPES]}{l.type === "sell" && ` · ₹${l.asking_price}`}</p>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        ) : <ListingGrid items={items} />}
       </main>
     </>
   );

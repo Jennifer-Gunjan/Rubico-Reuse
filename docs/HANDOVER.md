@@ -98,3 +98,10 @@ Also edit `ALLOWED_DOMAINS` in `src/lib/domain.ts` when adding a domain: the ser
 | `tests/e2e` | browser: anonymous checks and login-page accessibility (13), plus the two-account journey and signed-in accessibility (gated) | 13 + gated |
 
 Run locally: `npm test` (unit, API, database). `npm run e2e` needs a build first.
+
+## Public preview and first-login profile (added Day 4, scope change)
+- Landing (`/`), Browse and a listing page are readable signed out, via the `public_listings` and `public_listing_images` views (migration `0005_public_preview.sql`, SELECT only, live listings only, no owner id). Giver identity, requests and contact details stay behind login. Listing pages send `noindex`.
+- Every action (request, post, wanted, notifications, profile) still needs a Rubico login. Anonymous visitors are sent to `/?next=<page>` and returned there after sign-in (cookie `reuse_next`, validated by `safeNext`).
+- First sign-in with an incomplete profile goes to `/profile?welcome=1`; saving continues to the original destination.
+- **Run `0005_public_preview.sql` in Supabase before deploying**; without it the preview shows empty.
+- This relaxes the original "employees only" audience: listing text and photos are visible to the internet. Revert by removing `/browse`, `/listings/<id>` from `isPublicPath` in `src/lib/profile.ts`.

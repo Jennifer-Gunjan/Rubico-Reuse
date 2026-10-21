@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { LOCATIONS } from "@/lib/listing";
+import { safeNext } from "@/lib/profile";
 import { supabaseServer } from "@/lib/supabase/server";
 
 async function save(form: FormData) {
@@ -14,19 +16,24 @@ async function save(form: FormData) {
   if (!name || !teams || !(LOCATIONS as readonly string[]).includes(location)) redirect("/profile?error=1");
   const { data, error } = await sb.from("profiles").update({ name, location, teams_handle: teams }).eq("id", user.id).select("id");
   // Zero rows updated means the profile row is missing: say so instead of pretending it saved.
-  redirect(error ? "/profile?error=1" : !data?.length ? "/profile?error=missing" : "/browse");
+  if (error || !data?.length) redirect(error ? "/profile?error=1" : "/profile?error=missing");
+  const jar = await cookies();
+  const next = safeNext(jar.get("reuse_next")?.value); // where they were heading before sign-in
+  jar.delete("reuse_next");
+  redirect(next);
 }
 
-export default async function Profile({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+export default async function Profile({ searchParams }: { searchParams: Promise<{ error?: string; welcome?: string }> }) {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   const { data: p } = await sb.from("profiles").select("name,location,teams_handle").eq("id", user!.id).single();
-  const { error } = await searchParams;
+  const { error, welcome } = await searchParams;
   return (
     <>
       <Nav />
       <main className="wrap hero">
-        <h1>Your profile</h1>
+        <h1>{welcome ? "Welcome! Complete your profile" : "Your profile"}</h1>
+        {welcome && <p className="card" role="status">One quick step before you start: add your name, city and Teams handle.</p>}
         <p className="muted">Name, city and Teams handle are needed before you can post or request. Your Teams handle is shown only to the person you are matched with.</p>
         <form action={save} className="card login" style={{ marginTop: 24 }}>
           {error && <p className="error" role="alert">{error === "missing" ? "Your profile record was not found. Sign out, sign in again, and tell the product owner if this repeats." : "Fill in every field."}</p>}
