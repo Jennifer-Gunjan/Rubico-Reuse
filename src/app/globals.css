@@ -79,9 +79,38 @@ label { display: grid; gap: 4px; font-weight: 600; }
 .navlinks { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 16px; }
 .navlinks a:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
 .navlinks form { display: contents; }
+.bell, .menubtn { display: none; }
 @media (max-width: 760px) {
   .nav .wrap { height: auto; min-height: 64px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; row-gap: 4px; }
-  .navlinks { justify-content: flex-start; gap: 0 12px; width: 100%; }
-  .nav { position: static; } /* a three-row bar should not stay stuck to the top of a phone screen */
+  .nav { position: static; } /* a tall bar should not stay stuck to the top of a phone screen */
+  .bell { display: inline-flex; align-items: center; min-height: 44px; margin-left: auto; margin-right: 12px; text-decoration: none; }
+  .menubtn { display: inline-flex; }
+  .navlinks.menu { display: none; width: 100%; }
+  .navlinks.menu.open { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding-bottom: 8px; }
+  .navlinks.menu .desk-only { display: none; }
+  .navlinks.menu .btn { width: 100%; }
 }
 img { max-width: 100%; }
+
+/* Confirmation dialog and form guard */
+.dialog { border: 1px solid var(--border); border-radius: var(--radius-card); padding: 24px; max-width: 26rem; width: calc(100% - 32px); background: var(--card); color: var(--ink); }
+.dialog::backdrop { background: rgba(18, 18, 18, 0.5); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ready { display: contents; border: 0; padding: 0; margin: 0; min-width: 0; }
+
+/* Photos */
+.thumbs { list-style: none; padding: 0; margin: 0 0 12px; display: flex; gap: 12px; flex-wrap: wrap; }
+.thumb { display: grid; gap: 4px; width: 120px; align-content: start; }
+.thumb img { width: 120px; height: 90px; object-fit: cover; border-radius: var(--radius-control); }
+.thumbbtn { padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: var(--radius-card); }
+.dialog.viewer { max-width: 960px; }
+.dialog.viewer img { border-radius: var(--radius-control); }
+
+/* Tiles */
+.icon { font-size: 3rem; line-height: 1; }
+.price { font-family: "Inter Tight Variable", system-ui, sans-serif; font-weight: 700; font-size: 1.25rem; margin: 4px 0 0; }
+.tile p { margin: 4px 0; }
+
+/* How it works */
+.steps { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.steps p { margin: 8px 0 0; }

@@ -2,13 +2,14 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PhotoPicker } from "@/components/PhotoPicker";
+import { Ready } from "@/components/Ready";
 import { CATEGORIES, CONDITIONS, LOCATIONS, freePositions, type ListingInput } from "@/lib/listing";
-import { photoUrl } from "@/lib/photo";
+import { extFor, photoUrl, uploadPhoto } from "@/lib/photo";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { updateListing } from "@/app/my/actions";
 
 type Img = { id: string; storage_path: string; position: number };
-const MAX = 2 * 1024 * 1024;
 
 export function EditForm({ id, uid, initial, images }: { id: string; uid: string; initial: ListingInput; images: Img[] }) {
   const router = useRouter();
@@ -17,13 +18,7 @@ export function EditForm({ id, uid, initial, images }: { id: string; uid: string
   const [kept, setKept] = useState(images);
   const [files, setFiles] = useState<File[]>([]);
   const room = 4 - kept.length;
-  function pick(list: FileList | null) {
-    const chosen = Array.from(list ?? []);
-    if (chosen.length > room) return setError(`You can add ${room} more photo${room === 1 ? "" : "s"}.`);
-    if (chosen.some((c) => !["image/jpeg", "image/png"].includes(c.type) || c.size > MAX)) return setError("Photos must be JPG or PNG, 2 MB or less.");
-    setError(null); setFiles(chosen);
-  }
-  const set = (k: keyof ListingInput, v: string | boolean) => setF({ ...f, [k]: v });
+  const set = (k: keyof ListingInput, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const r = await updateListing(id, f);
@@ -35,16 +30,16 @@ export function EditForm({ id, uid, initial, images }: { id: string; uid: string
       await sb.storage.from("listing-images").remove(gone.map((g) => g.storage_path));
     }
     const slots = freePositions(kept.map((k) => k.position), files.length);
+    let used = 0, failed = 0;
     for (const [n, file] of files.slice(0, slots.length).entries()) {
-      const path = `${uid}/${id}-${Date.now()}-${n}.${file.type === "image/png" ? "png" : "jpg"}`;
-      const up = await sb.storage.from("listing-images").upload(path, file, { contentType: file.type });
-      if (!up.error) await sb.from("listing_images").insert({ listing_id: id, storage_path: path, position: slots[n] });
+      if (await uploadPhoto(sb, `${uid}/${id}-${Date.now()}-${n}.${extFor(file)}`, file, id, slots[used])) used++; else failed++;
     }
-    router.push(`/listings/${id}`);
+    router.push(`/listings/${id}${failed ? "?photos=failed" : ""}`);
   }
   return (
     <form onSubmit={submit} className="card login">
       {error && <p className="error" role="alert">{error}</p>}
+      <Ready>
       <label>Title<input className="field" value={f.title} onChange={(e) => set("title", e.target.value)} required maxLength={100} /></label>
       <label>Description<textarea className="field" style={{ minHeight: 120, padding: 12 }} value={f.description} onChange={(e) => set("description", e.target.value)} required maxLength={2000} /></label>
       <label>Category<select className="field" value={f.category} onChange={(e) => set("category", e.target.value)}>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select></label>
@@ -66,10 +61,11 @@ export function EditForm({ id, uid, initial, images }: { id: string; uid: string
             </div>
           ))}
         </div>
-        {room > 0 && <input type="file" accept="image/jpeg,image/png" multiple onChange={(e) => pick(e.target.files)} aria-label="Add photos" />}
+        <PhotoPicker files={files} setFiles={setFiles} max={room} onError={setError} />
       </fieldset>
       <p className="muted">The type of a listing cannot be changed.</p>
       <button className="btn" type="submit">Save changes</button>
+      </Ready>
     </form>
   );
 }

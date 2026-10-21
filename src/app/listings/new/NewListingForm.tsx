@@ -1,11 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PhotoPicker } from "@/components/PhotoPicker";
+import { Ready } from "@/components/Ready";
 import { CATEGORIES, CONDITIONS, LOCATIONS, TYPES, type ListingInput } from "@/lib/listing";
+import { extFor, uploadPhoto } from "@/lib/photo";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 import { createListing } from "./actions";
-
-const MAX = 2 * 1024 * 1024;
 
 export function NewListingForm({ uid, defaultLocation }: { uid: string; defaultLocation: string }) {
   const router = useRouter();
@@ -13,15 +14,7 @@ export function NewListingForm({ uid, defaultLocation }: { uid: string; defaultL
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const set = (k: keyof ListingInput, v: string | boolean) => setF({ ...f, [k]: v });
-
-  function pick(list: FileList | null) {
-    const chosen = Array.from(list ?? []);
-    if (chosen.length > 4) return setError("You can add up to 4 photos.");
-    if (chosen.some((c) => !["image/jpeg", "image/png"].includes(c.type) || c.size > MAX)) return setError("Photos must be JPG or PNG, 2 MB or less.");
-    setError(null);
-    setFiles(chosen);
-  }
+  const set = (k: keyof ListingInput, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,17 +22,17 @@ export function NewListingForm({ uid, defaultLocation }: { uid: string; defaultL
     const res = await createListing(f);
     if (!res.id) { setBusy(false); return setError(res.error ?? "Could not post."); }
     const sb = supabaseBrowser();
+    let pos = 0, failed = 0; // positions stay 0,1,2.. so the first photo that works is always the cover
     for (const [i, file] of files.entries()) {
-      const path = `${uid}/${res.id}-${i}.${file.type === "image/png" ? "png" : "jpg"}`;
-      const up = await sb.storage.from("listing-images").upload(path, file, { contentType: file.type });
-      if (!up.error) await sb.from("listing_images").insert({ listing_id: res.id, storage_path: path, position: i });
+      if (await uploadPhoto(sb, `${uid}/${res.id}-${i}.${extFor(file)}`, file, res.id, pos)) pos++; else failed++;
     }
-    router.push(`/listings/${res.id}`);
+    router.push(`/listings/${res.id}${failed ? "?photos=failed" : ""}`);
   }
 
   return (
     <form onSubmit={submit} className="card login">
       {error && <p className="error" role="alert">{error}</p>}
+      <Ready>
       <label>Title<input className="field" value={f.title} onChange={(e) => set("title", e.target.value)} required maxLength={100} /></label>
       <label>Description<textarea className="field" style={{ minHeight: 120, padding: 12 }} value={f.description} onChange={(e) => set("description", e.target.value)} required maxLength={2000} /></label>
       <label>Category
@@ -64,9 +57,9 @@ export function NewListingForm({ uid, defaultLocation }: { uid: string; defaultL
         <select className="field" value={f.location} onChange={(e) => set("location", e.target.value)} required>
           <option value="" disabled>Choose</option>{LOCATIONS.map((l) => <option key={l}>{l}</option>)}
         </select></label>
-      <label>Photos (up to 4, JPG or PNG, 2 MB each)
-        <input type="file" accept="image/jpeg,image/png" multiple onChange={(e) => pick(e.target.files)} /></label>
-      <button className="btn" type="submit" disabled={busy}>{busy ? "Posting..." : "Post item"}</button>
+      <PhotoPicker files={files} setFiles={setFiles} max={4} onError={setError} coverable />
+      <button className="btn" type="submit" disabled={busy}>{busy ? (files.length ? "Posting and uploading photos…" : "Posting…") : "Post item"}</button>
+      </Ready>
     </form>
   );
 }

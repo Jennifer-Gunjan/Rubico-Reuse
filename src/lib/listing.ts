@@ -46,3 +46,22 @@ export function validateWanted(i: WantedInput): string | null {
   const hit = findBannedKeyword(`${title} ${desc}`);
   return hit ? `"${hit}" items cannot be requested on Rubico ReUse.` : null;
 }
+
+export const CATEGORY_ICON: Record<string, string> = {
+  Furniture: "🪑", Electronics: "🔌", Books: "📚", Clothing: "👕", Kitchen: "🍳",
+  "Kids and baby": "🧸", Sports: "⚽", "Home and garden": "🪴", Other: "📦",
+};
+
+/** "Free", "₹500", "Exchange" or "Lend": what a tile shows first. */
+export const priceLabel = (type: string, price: number | null) =>
+  type === "sell" ? `₹${price ?? 0}` : type === "donate" ? "Free" : type === "exchange" ? "Exchange" : "Lend";
+
+/** "today", "yesterday", "5 days ago", "3 months ago". */
+export function timeAgo(iso: string, now = Date.now()): string {
+  const days = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 86_400_000));
+  if (days === 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 30) return `${days} days ago`;
+  const months = Math.floor(days / 30);
+  return months === 1 ? "1 month ago" : `${months} months ago`;
+}
