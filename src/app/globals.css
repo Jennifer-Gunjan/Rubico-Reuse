@@ -85,3 +85,9 @@ label { display: grid; gap: 4px; font-weight: 600; }
   .nav { position: static; } /* a three-row bar should not stay stuck to the top of a phone screen */
 }
 img { max-width: 100%; }
+
+/* Confirmation dialog and form guard */
+.dialog { border: 1px solid var(--border); border-radius: var(--radius-card); padding: 24px; max-width: 26rem; width: calc(100% - 32px); background: var(--card); color: var(--ink); }
+.dialog::backdrop { background: rgba(18, 18, 18, 0.5); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.ready { display: contents; border: 0; padding: 0; margin: 0; min-width: 0; }

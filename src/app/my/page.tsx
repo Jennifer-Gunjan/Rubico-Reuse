@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConfirmButton } from "@/components/ConfirmButton";
 import { Nav } from "@/components/Nav";
 import { TYPES } from "@/lib/listing";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -21,7 +22,7 @@ export default async function My() {
               <p className="mono muted">{TYPES[l.type as keyof typeof TYPES]} · {l.status}</p>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {["available", "requested", "returned"].includes(l.status) && <Link className="btn secondary" href={`/listings/${l.id}/edit`}>Edit</Link>}
-                {["available", "requested"].includes(l.status) && <form action={closeListing.bind(null, l.id)}><button className="btn secondary">Close</button></form>}
+                {["available", "requested"].includes(l.status) && <ConfirmButton label="Close" busyLabel="Closing…" title="Close this listing?" message="It leaves Browse and pending requests are declined. You can relist it later." run={closeListing.bind(null, l.id)} />}
                 {l.status === "closed" && <form action={reopenListing.bind(null, l.id)}><button className="btn secondary">Relist</button></form>}
               </div>
             </li>
