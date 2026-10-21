@@ -1,0 +1,49 @@
+import Link from "next/link";
+import { Nav } from "@/components/Nav";
+import { CATEGORIES, LOCATIONS, cleanSearch } from "@/lib/listing";
+import { supabaseServer } from "@/lib/supabase/server";
+import { HaveThis } from "./HaveThis";
+
+type SP = { q?: string; category?: string; location?: string };
+
+export default async function Wanted({ searchParams }: { searchParams: Promise<SP> }) {
+  const sp = await searchParams;
+  const sb = await supabaseServer();
+  const { data: { user } } = await sb.auth.getUser();
+  let query = sb.from("wanted_posts").select("id,poster_id,title,description,category,location").eq("status", "open").order("created_at", { ascending: false }).limit(60);
+  const q = cleanSearch(sp.q ?? "");
+  if (q) query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
+  if (sp.category) query = query.eq("category", sp.category);
+  if (sp.location) query = query.eq("location", sp.location);
+  const { data: posts } = await query;
+  const { data: mine } = await sb.from("wanted_responses").select("wanted_id").eq("responder_id", user!.id);
+  const responded = new Set((mine ?? []).map((r) => r.wanted_id));
+
+  return (
+    <>
+      <Nav />
+      <main className="wrap hero">
+        <h1>Wanted</h1>
+        <p><Link className="btn" href="/wanted/new">Post a wanted item</Link></p>
+        <form className="filters" role="search" style={{ gridTemplateColumns: "2fr 1fr 1fr auto" }}>
+          <input className="field" name="q" defaultValue={sp.q} placeholder="Search wanted items" aria-label="Search" />
+          <select className="field" name="category" defaultValue={sp.category ?? ""} aria-label="Category"><option value="">All categories</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}</select>
+          <select className="field" name="location" defaultValue={sp.location ?? ""} aria-label="City"><option value="">Both cities</option>{LOCATIONS.map((l) => <option key={l}>{l}</option>)}</select>
+          <button className="btn" type="submit">Search</button>
+        </form>
+        {!posts?.length ? <p className="card">Nobody is looking for anything right now.</p> : (
+          <ul className="grid">
+            {posts.map((w) => (
+              <li key={w.id} className="card tile">
+                <h2>{w.title}</h2>
+                <p className="mono muted">{w.category} · {w.location}</p>
+                <p style={{ whiteSpace: "pre-wrap" }}>{w.description}</p>
+                <HaveThis id={w.id} mine={w.poster_id === user!.id} responded={responded.has(w.id)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </main>
+    </>
+  );
+}

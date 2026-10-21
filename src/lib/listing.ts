@@ -34,3 +34,15 @@ export const cleanSearch = (q: string) => q.replace(/[,()%_\\*]/g, " ").trim().s
 /** Photo slots (0..3) not used by kept photos, lowest first; at most `count` returned. */
 export const freePositions = (kept: number[], count: number) =>
   [0, 1, 2, 3].filter((p) => !kept.includes(p)).slice(0, count);
+
+export type WantedInput = { title: string; description: string; category: string; location: string };
+
+export function validateWanted(i: WantedInput): string | null {
+  const title = i.title.trim(), desc = i.description.trim();
+  if (title.length < 3 || title.length > 100) return "Title must be 3 to 100 characters.";
+  if (!desc || desc.length > 2000) return "Add a description (up to 2000 characters).";
+  if (!(CATEGORIES as readonly string[]).includes(i.category)) return "Choose a category.";
+  if (!(LOCATIONS as readonly string[]).includes(i.location)) return "Choose Haridwar or Dehradun.";
+  const hit = findBannedKeyword(`${title} ${desc}`);
+  return hit ? `"${hit}" items cannot be requested on Rubico ReUse.` : null;
+}
