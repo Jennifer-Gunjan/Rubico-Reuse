@@ -8,7 +8,7 @@ Internal marketplace for Rubico employees (Haridwar, Dehradun) to donate, exchan
 | --- | --- | --- |
 | Website and server code | Vercel (Next.js 15) | Deploys from `main`. Every pull request gets a preview URL |
 | Database, login, photos | Supabase (project `mdznlxohnjfbybihbtfe`) | Postgres with row-level security; Auth; Storage bucket `listing-images` |
-| Email | Resend | Needs a verified sending domain before colleagues get mail (see section 6) |
+| Email | SMTP (Gmail app password) | No domain verification needed; see section 6 |
 | Checks | GitHub Actions | `check`, `races`, `e2e-anonymous` on every push; `live-api` and `e2e-journey` after merges to `main` |
 
 Rules that protect people live **in the database**, not only in screens: who can see contact details, one winner per accept, legal status changes, and the @rubicotech.com / @rubicotech.in login lock. The app cannot bypass them.
@@ -78,8 +78,8 @@ Also edit `ALLOWED_DOMAINS` in `src/lib/domain.ts` when adding a domain: the ser
 
 ## 6. Known limits and open items
 
-- **Email domain:** until a domain is verified in Resend, mail only reaches the Resend account owner. Ask whoever manages DNS to verify the sending domain (Resend, Domains). Notifications inside the app work regardless.
-- **Google sign-in** needs the OAuth client set up in Google Cloud and Supabase (see the requirements doc). The email-link login works without it. Mail may land in spam at first.
+- **Email:** sent over SMTP from a dedicated Gmail account (`SMTP_USER`, `SMTP_PASS`). Gmail allows about 500 a day and mail may land in spam at first. A company mailbox or verified domain would give better delivery: change the SMTP values only. If the variables are unset, emails stay pending and in-app notifications still work. Sign-in links from Supabase use Supabase's own sender (a few per hour) unless custom SMTP is set in Supabase, so UAT uses Google sign-in.
+- **Google sign-in** is the main login for UAT. Google Cloud OAuth consent screen: Internal (Workspace) or External with listed test users (max 100). The work email must be a Google account. The email-link login works but is rate limited on the built-in sender.
 - **Banned items** use a keyword list on titles and descriptions. It is light protection, not a guarantee. Confirm the list with the product owner.
 - **Concurrency** is tested on real Postgres in CI. Photos are compressed only by size limit (2 MB, JPG or PNG); there is no automatic resizing yet.
 - No admin screen, ratings, chat, payments or maps (out of scope for this release).
@@ -90,12 +90,12 @@ Also edit `ALLOWED_DOMAINS` in `src/lib/domain.ts` when adding a domain: the ser
 
 | Where | What | Count |
 | --- | --- | --- |
-| `src/lib` | status rules (every combination), domain lock, banned items, validation, emails | 200+ |
-| `tests/db` | database rules on in-process Postgres | 21 |
-| `tests/api` | login callback, sign out, page protection | 11 |
+| `src/lib` | status rules (every combination), domain lock, banned items, validation, profile and redirects, emails | 240+ |
+| `tests/db` | database rules on in-process Postgres, incl. public views | 24 |
+| `tests/api` | login callback, first-login profile redirect, sign out, page protection | 14 |
 | `tests/concurrency` | simultaneous accepts and other races on real Postgres | 4 |
 | `tests/live` | the real Supabase project's API rules | 6 |
-| `tests/e2e` | browser: anonymous checks and login-page accessibility (13), plus the two-account journey and signed-in accessibility (gated) | 13 + gated |
+| `tests/e2e` | browser: anonymous checks, public preview and login-page accessibility (12), plus the two-account journey and signed-in accessibility (gated) | 13 + gated |
 
 Run locally: `npm test` (unit, API, database). `npm run e2e` needs a build first.
 
