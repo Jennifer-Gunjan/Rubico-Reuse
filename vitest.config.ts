@@ -3,5 +3,5 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
-  test: { include: ["src/**/*.test.ts", "tests/**/*.test.ts"] },
+  test: { include: ["src/**/*.test.ts", "tests/**/*.test.ts"], testTimeout: 30_000 }, // live tests call real Supabase over the network
 });
