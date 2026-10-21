@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { flushOutbox } from "@/lib/outbox";
 import { validateListing, type ListingInput } from "@/lib/listing";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -8,6 +10,7 @@ const UUID = /^[0-9a-f-]{36}$/i;
 export async function closeListing(id: string) {
   if (!UUID.test(id)) return;
   await (await supabaseServer()).rpc("close_listing", { p_listing: id });
+  after(flushOutbox);
   revalidatePath("/my");
 }
 
