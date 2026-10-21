@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAllowedEmail } from "@/lib/domain";
 
-const PUBLIC = ["/", "/auth/callback"];
+const PUBLIC = ["/", "/auth/callback", "/api/cron/emails"]; // the cron route checks its own secret
 
 export async function middleware(req: NextRequest) {
   const isPublic = PUBLIC.includes(req.nextUrl.pathname);

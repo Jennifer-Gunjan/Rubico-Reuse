@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { flushOutbox } from "@/lib/outbox";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type R = { error?: string };
@@ -10,6 +12,7 @@ async function rpc(fn: string, args: Record<string, unknown>, listing: string): 
   if (fn !== "create_request" && Object.values(args).some((v) => typeof v === "string" && !UUID.test(v))) return { error: "Not found." };
   const { error } = await (await supabaseServer()).rpc(fn, args);
   revalidatePath(`/listings/${listing}`);
+  after(flushOutbox);
   return error ? { error: nice(error.message) } : {};
 }
 

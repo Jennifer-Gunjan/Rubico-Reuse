@@ -71,7 +71,7 @@ describe("middleware", () => {
   });
   it("lets anonymous visitors see login and the callback", async () => {
     auth.getUser.mockResolvedValue({ data: { user: null } });
-    for (const p of ["/", "/auth/callback"]) expect((await middleware(req(p))).headers.get("location")).toBeNull();
+    for (const p of ["/", "/auth/callback", "/api/cron/emails"]) expect((await middleware(req(p))).headers.get("location")).toBeNull();
   });
   it("lets an allowed user through", async () => {
     user("a@rubicotech.com");
