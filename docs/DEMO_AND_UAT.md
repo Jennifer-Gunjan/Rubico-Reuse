@@ -25,4 +25,4 @@ Say out loud: contact details are protected by the database, two simultaneous ac
 - [ ] Wanted board: post, "I have this", mark fulfilled
 - [ ] Report this listing reaches the product owner
 - [ ] Works in Chrome on Mac, Windows, Linux and on a phone
-- [ ] Notification emails arrive (needs the sending domain; check spam)
+- [ ] Notification emails arrive (SMTP sender; check spam)
