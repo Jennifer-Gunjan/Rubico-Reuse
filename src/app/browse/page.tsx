@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { CATEGORIES, LOCATIONS, TYPES, cleanSearch } from "@/lib/listing";
@@ -46,7 +47,9 @@ export default async function Browse({ searchParams }: { searchParams: Promise<S
               return (
                 <li key={l.id} className="card tile">
                   <Link href={`/listings/${l.id}`}>
-                    {img ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={photoUrl(img.storage_path)} alt="" /> : <div className="noimg mono">No photo</div>}
+                    <div className="imgbox">
+                      {img ? <Image src={photoUrl(img.storage_path)} alt="" fill sizes="(max-width: 640px) 100vw, 260px" style={{ objectFit: "cover" }} /> : <span className="mono muted">No photo</span>}
+                    </div>
                     <h2>{l.title}</h2>
                   </Link>
                   <p className="mono muted">{l.category} · {l.location}</p>

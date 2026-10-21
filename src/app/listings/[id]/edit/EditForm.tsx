@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CATEGORIES, CONDITIONS, LOCATIONS, freePositions, type ListingInput } from "@/lib/listing";
@@ -60,8 +61,7 @@ export function EditForm({ id, uid, initial, images }: { id: string; uid: string
         <div className="gallery">
           {kept.map((k) => (
             <div key={k.id}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photoUrl(k.storage_path)} alt="" style={{ width: 120 }} />
+              <Image src={photoUrl(k.storage_path)} alt="" width={120} height={90} sizes="120px" style={{ objectFit: "cover" }} />
               <button type="button" className="btn secondary" onClick={() => setKept(kept.filter((x) => x.id !== k.id))}>Remove</button>
             </div>
           ))}

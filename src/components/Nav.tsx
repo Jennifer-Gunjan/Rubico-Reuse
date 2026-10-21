@@ -8,7 +8,7 @@ export async function Nav() {
     <header className="nav">
       <div className="wrap">
         <Logo />
-        <nav style={{ display: "flex", gap: 16, alignItems: "center" }}>
+        <nav className="navlinks" aria-label="Main">
           <Link href="/browse">Browse</Link>
           <Link href="/wanted">Wanted</Link>
           <Link href="/my">My items</Link>
