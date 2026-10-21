@@ -3,9 +3,12 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 // Minimal stand-ins for the parts of Supabase our migrations touch.
-const SUPABASE_STUB = `
+export const SUPABASE_STUB = `
 create schema auth; create schema storage;
-create role anon; create role authenticated;
+do $$ begin
+  if not exists (select from pg_roles where rolname = 'anon') then create role anon; end if;
+  if not exists (select from pg_roles where rolname = 'authenticated') then create role authenticated; end if;
+end $$;
 create table auth.users (id uuid primary key default gen_random_uuid(), email text,
   raw_user_meta_data jsonb default '{}'::jsonb);
 create function auth.uid() returns uuid language sql stable as
