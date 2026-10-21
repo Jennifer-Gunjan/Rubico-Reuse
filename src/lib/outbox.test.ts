@@ -20,3 +20,14 @@ describe("emailFor", () => {
     expect(emailFor({ type: "request_accepted", message: "m", payload: {} }, "https://x.test").text).not.toMatch(/Contact:/);
   });
 });
+
+import { reportEmail } from "./outbox";
+describe("reportEmail", () => {
+  it("names the listing, link, reason and reporter", () => {
+    const m = reportEmail({ title: "Desk", listingId: "abc", reason: "Not allowed", reporterName: "Asha", reporterEmail: "a@rubicotech.in" }, "https://x.test");
+    expect(m.subject).toContain("Desk");
+    expect(m.text).toContain("https://x.test/listings/abc");
+    expect(m.text).toContain("Not allowed");
+    expect(m.text).toContain("a@rubicotech.in");
+  });
+});

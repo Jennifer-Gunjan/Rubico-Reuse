@@ -3,6 +3,7 @@ import { Nav } from "@/components/Nav";
 import { CONDITIONS, TYPES } from "@/lib/listing";
 import { photoUrl } from "@/lib/photo";
 import { supabaseServer } from "@/lib/supabase/server";
+import { ReportForm } from "./ReportForm";
 import { RequestPanel, type Req } from "./RequestPanel";
 
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
@@ -41,6 +42,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         <p style={{ whiteSpace: "pre-wrap" }}>{l.description}</p>
         <p className="muted">Posted by {owner?.name || "a Rubico colleague"}. Status: {l.status}.</p>
         <RequestPanel listingId={id} type={l.type} status={l.status} role={role === "owner" ? "owner" : myRequest ? "seeker" : "other"} requests={role === "owner" ? requests : []} myRequest={myRequest} contact={contact} />
+        {role !== "owner" && <ReportForm listingId={id} />}
       </main>
     </>
   );

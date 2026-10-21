@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
-import { flushOutbox } from "@/lib/outbox";
+import { flushOutbox, sendReport } from "@/lib/outbox";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type R = { error?: string };
@@ -31,4 +31,21 @@ export async function markStatus(listing: string, to: "given" | "lent" | "return
   const { error } = await (await supabaseServer()).from("listings").update({ status: to }).eq("id", listing);
   revalidatePath(`/listings/${listing}`);
   return error ? { error: nice(error.message) } : {};
+}
+
+export async function reportListing(listing: string, reason: string): Promise<R> {
+  if (!UUID.test(listing)) return { error: "Not found." };
+  const text = reason.trim();
+  if (!text || text.length > 1000) return { error: "Tell us briefly what is wrong (up to 1000 characters)." };
+  const sb = await supabaseServer();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return { error: "Please sign in again." };
+  const { error } = await sb.from("reports").insert({ listing_id: listing, reporter_id: user.id, reason: text });
+  if (error) return { error: error.code === "23505" ? "You already reported this listing." : "Could not send the report." };
+  const [{ data: l }, { data: me }] = await Promise.all([
+    sb.from("listings").select("title").eq("id", listing).single(),
+    sb.from("profiles").select("name").eq("id", user.id).single(),
+  ]);
+  after(() => sendReport({ title: l?.title ?? "(listing)", listingId: listing, reason: text, reporterName: me?.name ?? "", reporterEmail: user.email ?? "" }));
+  return {};
 }

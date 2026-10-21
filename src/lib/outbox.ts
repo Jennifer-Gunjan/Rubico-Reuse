@@ -65,3 +65,24 @@ export async function flushOutbox(): Promise<{ sent: number; failed: number }> {
   }
   return out;
 }
+
+export function reportEmail(r: { title: string; listingId: string; reason: string; reporterName: string; reporterEmail: string }, appUrl: string) {
+  return {
+    subject: `Rubico ReUse report: ${r.title}`,
+    text: `A listing was reported.\n\nListing: ${r.title}\nLink: ${appUrl}/listings/${r.listingId}\nReason: ${r.reason}\nReported by: ${r.reporterName} (${r.reporterEmail})\n\nTo remove it, delete or close the listing in Supabase.`,
+  };
+}
+
+/** Emails the product owner about a reported listing. Best effort; the report row is already saved. */
+export async function sendReport(r: Parameters<typeof reportEmail>[0]): Promise<boolean> {
+  const key = process.env.RESEND_API_KEY, to = process.env.PRODUCT_OWNER_EMAIL;
+  if (!key || !to) return false;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://rubico-reuse.vercel.app";
+  const from = process.env.RESEND_FROM ?? "Rubico ReUse <onboarding@resend.dev>";
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from, to, ...reportEmail(r, appUrl) }),
+  }).catch(() => null);
+  return !!res?.ok;
+}
