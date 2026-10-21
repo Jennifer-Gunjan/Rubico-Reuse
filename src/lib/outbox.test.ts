@@ -31,3 +31,16 @@ describe("reportEmail", () => {
     expect(m.text).toContain("a@rubicotech.in");
   });
 });
+
+describe("sendMail", () => {
+  it("returns false without SMTP settings, so rows stay pending", async () => {
+    delete process.env.SMTP_USER; delete process.env.SMTP_PASS;
+    const { sendMail } = await import("./outbox");
+    expect(await sendMail({ to: "a@rubicotech.in", subject: "s", text: "t" })).toBe(false);
+  });
+  it("returns false (never throws) when the SMTP server is unreachable", async () => {
+    process.env.SMTP_USER = "u"; process.env.SMTP_PASS = "p"; process.env.SMTP_HOST = "127.0.0.1"; process.env.SMTP_PORT = "1";
+    const { sendMail } = await import("./outbox");
+    expect(await sendMail({ to: "a@rubicotech.in", subject: "s", text: "t" })).toBe(false);
+  });
+});

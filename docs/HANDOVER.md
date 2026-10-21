@@ -21,7 +21,7 @@ Vercel, Settings, Environment Variables:
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public values the browser uses |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server only. Sends email. Never expose it |
-| `RESEND_API_KEY`, `RESEND_FROM` | Email sending and sender address |
+| `SMTP_USER`, `SMTP_PASS` | Email sending over SMTP (Gmail address + app password). Optional `SMTP_HOST` (default smtp.gmail.com), `SMTP_PORT` (465), `SMTP_FROM` |
 | `PRODUCT_OWNER_EMAIL` | Receives listing reports |
 | `NEXT_PUBLIC_APP_URL` | Links inside emails |
 | `CRON_SECRET` | Protects the daily email retry route |
