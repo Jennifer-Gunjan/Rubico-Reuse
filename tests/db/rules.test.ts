@@ -194,4 +194,14 @@ describe("wanted board and profiles", () => {
     await expect(as(db, owner, () => db.query(`update listings set type = 'sell', asking_price = 10 where id = $1`, [l]))).rejects.toThrow();
     await expect(as(db, owner, () => db.query(`update listings set owner_id = $2 where id = $1`, [l, alice]))).rejects.toThrow();
   });
+  it("wanted poster sees a responder's contact; nobody else does", async () => {
+    const { rows: [{ id: w }] } = await db.query<{ id: string }>(
+      `insert into wanted_posts (poster_id, title, description, category, location)
+       values ($1, 'Need a desk', 'Study desk', 'Furniture', 'Dehradun') returning id`, [owner]);
+    await call(alice, "respond_wanted", w);
+    const seen = (viewer: string, target: string) => cardsOf(viewer, target);
+    expect((await seen(owner, alice)).length).toBe(1);   // poster sees the responder
+    expect((await seen(bob, alice)).length).toBe(0);     // an unrelated user does not
+    expect((await seen(alice, owner)).length).toBe(0);   // the responder does not see the poster
+  });
 });

@@ -10,7 +10,13 @@ describe("emailFor", () => {
   it("falls back to the notifications page", () => {
     expect(emailFor({ type: "x", message: "m", payload: null }, "https://x.test").text).toContain("https://x.test/notifications");
   });
-  it("never includes contact details", () => {
-    expect(emailFor({ type: "request_accepted", message: "Accepted", payload: {} }, "https://x.test").text).not.toMatch(/@|Teams/);
+  const c = { name: "Asha", email: "asha@rubicotech.in", teams_handle: "asha.t" };
+  it("includes contact details only for accepted requests and wanted responses", () => {
+    expect(emailFor({ type: "request_accepted", message: "m", payload: {} }, "https://x.test", c).text).toContain("asha@rubicotech.in");
+    expect(emailFor({ type: "wanted_response", message: "m", payload: {} }, "https://x.test", c).text).toContain("Teams: asha.t");
+    expect(emailFor({ type: "new_request", message: "m", payload: {} }, "https://x.test", c).text).not.toMatch(/asha/);
+  });
+  it("sends no contact block when none is available", () => {
+    expect(emailFor({ type: "request_accepted", message: "m", payload: {} }, "https://x.test").text).not.toMatch(/Contact:/);
   });
 });

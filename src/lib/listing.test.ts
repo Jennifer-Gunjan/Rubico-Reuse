@@ -32,3 +32,14 @@ describe("freePositions", () => {
     expect(freePositions([0, 1, 2, 3], 1)).toEqual([]);
   });
 });
+
+import { validateWanted } from "./listing";
+describe("validateWanted", () => {
+  const w = { title: "Need a desk", description: "Study desk please", category: "Furniture", location: "Haridwar" };
+  it("accepts a valid post", () => expect(validateWanted(w)).toBeNull());
+  it("rejects bad input and banned items", () => {
+    expect(validateWanted({ ...w, title: "x" })).toMatch(/Title/);
+    expect(validateWanted({ ...w, location: "Pune" })).toMatch(/Haridwar/);
+    expect(validateWanted({ ...w, description: "any medicines" })).toMatch(/cannot be requested/);
+  });
+});

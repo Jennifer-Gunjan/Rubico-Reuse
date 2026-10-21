@@ -10,6 +10,7 @@ export async function Nav() {
         <Logo />
         <nav style={{ display: "flex", gap: 16, alignItems: "center" }}>
           <Link href="/browse">Browse</Link>
+          <Link href="/wanted">Wanted</Link>
           <Link href="/my">My items</Link>
           <Link href="/notifications">Notifications{count ? ` (${count})` : ""}</Link>
           <Link href="/profile">Profile</Link>
