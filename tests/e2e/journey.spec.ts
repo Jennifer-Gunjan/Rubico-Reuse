@@ -60,6 +60,7 @@ test.describe("journey", () => {
     await giver.goto(listingUrl);
     await expect(giver.getByText("I would like this, thank you")).toBeVisible();
     await giver.getByRole("button", { name: "Accept" }).click();
+    await giver.getByRole("dialog").getByRole("button", { name: "Accept" }).click(); // confirm
     await expect(giver.getByText(/You accepted/)).toBeVisible();
     await expect(giver.getByRole("status")).toContainText(E2E_EMAIL_2!);
 

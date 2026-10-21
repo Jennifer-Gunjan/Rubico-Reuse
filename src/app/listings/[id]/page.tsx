@@ -1,17 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Gallery } from "@/components/Gallery";
 import { Nav } from "@/components/Nav";
-import { CONDITIONS, TYPES } from "@/lib/listing";
-import { photoUrl } from "@/lib/photo";
+import { CONDITIONS, TYPES, timeAgo } from "@/lib/listing";
 import { supabaseServer } from "@/lib/supabase/server";
 import { ReportForm } from "./ReportForm";
 import { RequestPanel, type Req } from "./RequestPanel";
 
 export const metadata = { robots: { index: false, follow: false } }; // the listing preview is public, keep it out of search engines
 
-export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ListingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ photos?: string }> }) {
   const { id } = await params;
+  const { photos } = await searchParams;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
@@ -40,11 +40,10 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         {l.type === "sell" && <p><strong>₹{l.asking_price}</strong>{l.negotiable && " (negotiable)"}</p>}
         {l.wanted_in_return && <p>Wanted in return: {l.wanted_in_return}</p>}
         {l.lend_duration_text && <p>Lent for: {l.lend_duration_text}</p>}
-        <div className="gallery">
-          {imgs.map((i: { storage_path: string }) => <Image key={i.storage_path} src={photoUrl(i.storage_path)} alt={l.title} width={280} height={210} sizes="280px" style={{ objectFit: "cover", height: "auto" }} />)}
-        </div>
+        {role === "owner" && photos === "failed" && <p className="error" role="alert">Your item is posted, but some photos could not be uploaded. <Link href={`/listings/${id}/edit`}>Add them again</Link>.</p>}
+        <Gallery title={l.title} paths={imgs.map((i: { storage_path: string }) => i.storage_path)} />
         <p style={{ whiteSpace: "pre-wrap" }}>{l.description}</p>
-        <p className="muted">Posted by {owner?.name || "a Rubico colleague"}. Status: {l.status}.</p>
+        <p className="muted">Posted by {owner?.name || "a Rubico colleague"} {timeAgo(l.created_at)}. Status: {l.status}.</p>
         <RequestPanel listingId={id} type={l.type} status={l.status} role={role === "owner" ? "owner" : myRequest ? "seeker" : "other"} requests={role === "owner" ? requests : []} myRequest={myRequest} contact={contact} />
         {role !== "owner" && <ReportForm listingId={id} />}
       </main>
@@ -67,10 +66,9 @@ async function Preview({ id }: { id: string }) {
         {l.type === "sell" && <p><strong>₹{l.asking_price}</strong>{l.negotiable && " (negotiable)"}</p>}
         {l.wanted_in_return && <p>Wanted in return: {l.wanted_in_return}</p>}
         {l.lend_duration_text && <p>Lent for: {l.lend_duration_text}</p>}
-        <div className="gallery">
-          {(imgs ?? []).map((i) => <Image key={i.storage_path} src={photoUrl(i.storage_path)} alt={l.title} width={280} height={210} sizes="280px" style={{ objectFit: "cover", height: "auto" }} />)}
-        </div>
+        <Gallery title={l.title} paths={(imgs ?? []).map((i) => i.storage_path)} />
         <p style={{ whiteSpace: "pre-wrap" }}>{l.description}</p>
+        <p className="muted">Posted {timeAgo(l.created_at)}.</p>
         <p className="card"><Link className="btn" href={`/?next=${encodeURIComponent(`/listings/${id}`)}`}>Sign in to request this item</Link></p>
       </main>
     </>

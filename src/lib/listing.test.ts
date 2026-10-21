@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanSearch, validateListing, type ListingInput } from "./listing";
+import { cleanSearch, priceLabel, timeAgo, validateListing, type ListingInput } from "./listing";
 
 const ok: ListingInput = { title: "Study desk", description: "Solid wood", category: "Furniture", condition: "good", type: "donate", location: "Dehradun" };
 
@@ -41,5 +41,20 @@ describe("validateWanted", () => {
     expect(validateWanted({ ...w, title: "x" })).toMatch(/Title/);
     expect(validateWanted({ ...w, location: "Pune" })).toMatch(/Haridwar/);
     expect(validateWanted({ ...w, description: "any medicines" })).toMatch(/cannot be requested/);
+  });
+});
+
+describe("tile helpers", () => {
+  const now = new Date("2026-10-21T12:00:00Z").getTime();
+  it("timeAgo", () => {
+    expect(timeAgo("2026-10-21T01:00:00Z", now)).toBe("today");
+    expect(timeAgo("2026-10-20T01:00:00Z", now)).toBe("yesterday");
+    expect(timeAgo("2026-10-16T12:00:00Z", now)).toBe("5 days ago");
+    expect(timeAgo("2026-08-01T12:00:00Z", now)).toBe("2 months ago");
+  });
+  it("priceLabel", () => {
+    expect(priceLabel("sell", 500)).toBe("₹500");
+    expect(priceLabel("donate", null)).toBe("Free");
+    expect(priceLabel("lend", null)).toBe("Lend");
   });
 });
