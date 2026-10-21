@@ -7,7 +7,9 @@ const auth = {
   getUser: vi.fn(),
   signOut: vi.fn(),
 };
-vi.mock("@/lib/supabase/server", () => ({ supabaseServer: async () => ({ auth }) }));
+let profile: unknown = { name: "A", location: "Pune", teams_handle: "a" };
+const from = () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: profile }) }) }) });
+vi.mock("@/lib/supabase/server", () => ({ supabaseServer: async () => ({ auth, from }) }));
 vi.mock("@supabase/ssr", () => ({ createServerClient: () => ({ auth }) }));
 
 import { GET as callback } from "@/app/auth/callback/route";
@@ -16,7 +18,7 @@ import { middleware } from "@/middleware";
 
 const req = (path: string, method = "GET") => new NextRequest(`https://reuse.test${path}`, { method });
 const loc = (r: Response) => new URL(r.headers.get("location") ?? "", "https://reuse.test");
-const user = (email: string) => auth.getUser.mockResolvedValue({ data: { user: { email } } });
+const user = (email: string) => auth.getUser.mockResolvedValue({ data: { user: { id: "u1", email } } });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -24,6 +26,7 @@ beforeEach(() => {
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "k";
   auth.exchangeCodeForSession.mockResolvedValue({ error: null });
   auth.signOut.mockResolvedValue({});
+  profile = { name: "A", location: "Pune", teams_handle: "a" };
 });
 
 describe("GET /auth/callback", () => {
@@ -39,6 +42,24 @@ describe("GET /auth/callback", () => {
   it("a rubicotech.in user lands on Browse", async () => {
     user("a@rubicotech.in");
     expect(loc(await callback(req("/auth/callback?code=abc"))).pathname).toBe("/browse");
+  });
+  it("a first-time user with an empty profile is asked to complete it", async () => {
+    user("a@rubicotech.in");
+    profile = { name: "", location: "", teams_handle: "" };
+    const r = await callback(req("/auth/callback?code=abc"));
+    expect(loc(r).pathname + loc(r).search).toBe("/profile?welcome=1");
+  });
+  it("a missing profile row also counts as incomplete", async () => {
+    user("a@rubicotech.in");
+    profile = null;
+    expect(loc(await callback(req("/auth/callback?code=abc"))).pathname).toBe("/profile");
+  });
+  it("returns to the page they were on, but never to another site", async () => {
+    user("a@rubicotech.in");
+    const withNext = (n: string) => { const r = new NextRequest("https://reuse.test/auth/callback?code=abc", { headers: { cookie: `reuse_next=${encodeURIComponent(n)}` } }); return callback(r); };
+    expect(loc(await withNext("/listings/abc")).pathname).toBe("/listings/abc");
+    expect(loc(await withNext("//evil.com")).host).toBe("reuse.test");
+    expect(loc(await withNext("//evil.com")).pathname).toBe("/browse");
   });
   it("an outside-domain user is signed out and refused", async () => {
     user("a@gmail.com");
@@ -64,14 +85,15 @@ describe("POST /auth/signout", () => {
 describe("middleware", () => {
   it("sends anonymous visitors from protected pages to login", async () => {
     auth.getUser.mockResolvedValue({ data: { user: null } });
-    for (const p of ["/browse", "/my", "/profile", "/listings/new"]) {
+    for (const p of ["/my", "/wanted", "/profile", "/notifications", "/listings/new", "/listings/abc"]) {
       const r = await middleware(req(p));
       expect(loc(r).pathname, p).toBe("/");
+      expect(loc(r).searchParams.get("next"), p).toBe(p);
     }
   });
-  it("lets anonymous visitors see login and the callback", async () => {
+  it("lets anonymous visitors see the landing page, browse, a listing and the callback", async () => {
     auth.getUser.mockResolvedValue({ data: { user: null } });
-    for (const p of ["/", "/auth/callback", "/api/cron/emails"]) expect((await middleware(req(p))).headers.get("location")).toBeNull();
+    for (const p of ["/", "/browse", "/listings/123e4567-e89b-12d3-a456-426614174000", "/auth/callback", "/api/cron/emails"]) expect((await middleware(req(p))).headers.get("location")).toBeNull();
   });
   it("lets an allowed user through", async () => {
     user("a@rubicotech.com");
@@ -85,7 +107,7 @@ describe("middleware", () => {
   });
   it("fails closed when Supabase is not configured", async () => {
     delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-    expect(loc(await middleware(req("/browse"))).search).toBe("?error=config");
+    expect(loc(await middleware(req("/my"))).search).toBe("?error=config");
     expect((await middleware(req("/"))).headers.get("location")).toBeNull();
   });
 });

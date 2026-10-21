@@ -1,17 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isAllowedEmail } from "@/lib/domain";
-
-const PUBLIC = ["/", "/auth/callback", "/api/cron/emails"]; // the cron route checks its own secret
+import { isPublicPath } from "@/lib/profile";
 
 export async function middleware(req: NextRequest) {
-  const isPublic = PUBLIC.includes(req.nextUrl.pathname);
+  const isPublic = isPublicPath(req.nextUrl.pathname); // the cron route checks its own secret
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const home = (error?: string) => {
     const to = req.nextUrl.clone();
     to.pathname = "/";
-    to.search = error ? `?error=${error}` : "";
+    to.search = error ? `?error=${error}` : `?next=${encodeURIComponent(req.nextUrl.pathname + req.nextUrl.search)}`; // come back here after sign-in
     return NextResponse.redirect(to);
   };
 

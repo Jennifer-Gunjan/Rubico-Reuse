@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { CONDITIONS, TYPES } from "@/lib/listing";
@@ -7,15 +8,18 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { ReportForm } from "./ReportForm";
 import { RequestPanel, type Req } from "./RequestPanel";
 
+export const metadata = { robots: { index: false, follow: false } }; // the listing preview is public, keep it out of search engines
+
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const sb = await supabaseServer();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return <Preview id={id} />;
   const { data: l } = await sb.from("listings").select("*, listing_images(storage_path,position)").eq("id", id).maybeSingle();
   if (!l) notFound();
   const { data: owner } = await sb.from("profile_cards").select("name,location").eq("id", l.owner_id).maybeSingle();
-  const { data: { user } } = await sb.auth.getUser();
-  const uid = user!.id;
+  const uid = user.id;
   const role = l.owner_id === uid ? "owner" : "seeker";
   const { data: reqRows } = await sb.from("requests").select("id,seeker_id,message,offered_items,status").eq("listing_id", id).order("created_at");
   const ids = [...new Set((reqRows ?? []).map((r) => r.seeker_id))];
@@ -43,6 +47,31 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         <p className="muted">Posted by {owner?.name || "a Rubico colleague"}. Status: {l.status}.</p>
         <RequestPanel listingId={id} type={l.type} status={l.status} role={role === "owner" ? "owner" : myRequest ? "seeker" : "other"} requests={role === "owner" ? requests : []} myRequest={myRequest} contact={contact} />
         {role !== "owner" && <ReportForm listingId={id} />}
+      </main>
+    </>
+  );
+}
+
+/** Signed-out view: listing content only, no giver identity, no requests, no actions. */
+async function Preview({ id }: { id: string }) {
+  const sb = await supabaseServer();
+  const { data: l } = await sb.from("public_listings").select("*").eq("id", id).maybeSingle();
+  if (!l) notFound();
+  const { data: imgs } = await sb.from("public_listing_images").select("storage_path,position").eq("listing_id", id).order("position");
+  return (
+    <>
+      <Nav />
+      <main className="wrap hero">
+        <h1>{l.title}</h1>
+        <p className="mono muted">{l.category} · {l.location} · {CONDITIONS[l.condition as keyof typeof CONDITIONS]} · {TYPES[l.type as keyof typeof TYPES]}</p>
+        {l.type === "sell" && <p><strong>₹{l.asking_price}</strong>{l.negotiable && " (negotiable)"}</p>}
+        {l.wanted_in_return && <p>Wanted in return: {l.wanted_in_return}</p>}
+        {l.lend_duration_text && <p>Lent for: {l.lend_duration_text}</p>}
+        <div className="gallery">
+          {(imgs ?? []).map((i) => <Image key={i.storage_path} src={photoUrl(i.storage_path)} alt={l.title} width={280} height={210} sizes="280px" style={{ objectFit: "cover", height: "auto" }} />)}
+        </div>
+        <p style={{ whiteSpace: "pre-wrap" }}>{l.description}</p>
+        <p className="card"><Link className="btn" href={`/?next=${encodeURIComponent(`/listings/${id}`)}`}>Sign in to request this item</Link></p>
       </main>
     </>
   );

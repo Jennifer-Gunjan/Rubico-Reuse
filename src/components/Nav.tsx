@@ -3,7 +3,22 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { Logo } from "./Logo";
 
 export async function Nav() {
-  const { count } = await (await supabaseServer()).from("notifications").select("id", { count: "exact", head: true }).is("read_at", null);
+  const sb = await supabaseServer();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) {
+    return (
+      <header className="nav">
+        <div className="wrap">
+          <Logo />
+          <nav className="navlinks" aria-label="Main">
+            <Link href="/browse">Browse</Link>
+            <Link className="btn" href="/">Sign in</Link>
+          </nav>
+        </div>
+      </header>
+    );
+  }
+  const { count } = await sb.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null);
   return (
     <header className="nav">
       <div className="wrap">
