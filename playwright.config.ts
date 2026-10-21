@@ -5,6 +5,7 @@ export default defineConfig({
   testDir: "tests/e2e",
   testMatch: "**/*.spec.ts",
   timeout: 60_000,
+  expect: { timeout: 15_000 }, // real server actions on Supabase can take more than the default 5s
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["list"], ["github"]] : [["list"]],
   use: {
