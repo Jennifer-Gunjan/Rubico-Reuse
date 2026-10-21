@@ -56,16 +56,16 @@ a { color: inherit; }
 .field { display: block; width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--card); font: inherit; color: var(--ink); }
 .error { border-left: 3px solid var(--accent); background: var(--card); padding: 8px 12px; margin: 0 0 16px; }
 
-.hero { padding: 64px 0 48px; }
+.hero { padding-top: 64px; padding-bottom: 48px; }
 .hero p.lead { font-size: 1.25rem; max-width: 36rem; }
 .login { display: grid; gap: 16px; max-width: 28rem; }
-@media (max-width: 640px) { .hero { padding: 32px 0; } .card { padding: 20px; } }
+@media (max-width: 640px) { .hero { padding-top: 32px; padding-bottom: 32px; } .card { padding: 20px; } }
 
 .filters { display: grid; gap: 8px; grid-template-columns: 2fr 1fr 1fr 1fr auto; margin: 16px 0 24px; }
 .grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .tile { padding: 16px; }
 .tile a { text-decoration: none; }
-.tile img, .noimg { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius-control); background: var(--surface); display: grid; place-items: center; }
+.imgbox { position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; border-radius: var(--radius-control); background: var(--surface); display: grid; place-items: center; }
 .tile h2 { font-size: 1.125rem; margin: 8px 0 0; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 600; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); display: inline-block; }
@@ -74,3 +74,14 @@ a { color: inherit; }
 .gallery img { max-width: 280px; border-radius: var(--radius-card); }
 label { display: grid; gap: 4px; font-weight: 600; }
 @media (max-width: 760px) { .filters { grid-template-columns: 1fr; } }
+
+/* Top bar: links wrap onto a second row on narrow screens instead of forcing sideways scroll; 44px tap targets. */
+.navlinks { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 16px; }
+.navlinks a:not(.btn) { display: inline-flex; align-items: center; min-height: 44px; }
+.navlinks form { display: contents; }
+@media (max-width: 760px) {
+  .nav .wrap { height: auto; min-height: 64px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; row-gap: 4px; }
+  .navlinks { justify-content: flex-start; gap: 0 12px; width: 100%; }
+  .nav { position: static; } /* a three-row bar should not stay stuck to the top of a phone screen */
+}
+img { max-width: 100%; }

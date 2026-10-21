@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { CONDITIONS, TYPES } from "@/lib/listing";
@@ -36,8 +37,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         {l.wanted_in_return && <p>Wanted in return: {l.wanted_in_return}</p>}
         {l.lend_duration_text && <p>Lent for: {l.lend_duration_text}</p>}
         <div className="gallery">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          {imgs.map((i: { storage_path: string }) => <img key={i.storage_path} src={photoUrl(i.storage_path)} alt={l.title} />)}
+          {imgs.map((i: { storage_path: string }) => <Image key={i.storage_path} src={photoUrl(i.storage_path)} alt={l.title} width={280} height={210} sizes="280px" style={{ objectFit: "cover", height: "auto" }} />)}
         </div>
         <p style={{ whiteSpace: "pre-wrap" }}>{l.description}</p>
         <p className="muted">Posted by {owner?.name || "a Rubico colleague"}. Status: {l.status}.</p>
