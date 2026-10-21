@@ -35,9 +35,18 @@ describe.skipIf(!live)("live API", () => {
     expect(r.error).not.toBeNull();
   });
 
-  it("a signed-in user sees only their own profile row", async () => {
+  it("a signed-in user sees only their own profile and the people they are matched with", async () => {
+    // Allowed: yourself, the other party of an accepted request, and responders to your wanted posts. Nobody else.
+    const { data: reqs } = await me.from("requests").select("seeker_id,status,listings(owner_id)").eq("status", "accepted");
+    const { data: resp } = await me.from("wanted_responses").select("responder_id");
+    const allowed = new Set<string>([uid, ...(resp ?? []).map((r) => r.responder_id)]);
+    for (const r of (reqs ?? []) as unknown as { seeker_id: string; listings: { owner_id: string } | null }[]) {
+      allowed.add(r.seeker_id);
+      if (r.listings) allowed.add(r.listings.owner_id);
+    }
     const { data } = await me.from("profiles").select("id");
-    expect(data?.map((r) => r.id)).toEqual([uid]);
+    expect((data ?? []).filter((r) => !allowed.has(r.id))).toEqual([]);
+    expect(data?.map((r) => r.id)).toContain(uid);
   });
 
   it("a user cannot make themselves admin or change their email", async () => {

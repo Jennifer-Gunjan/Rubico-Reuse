@@ -97,4 +97,8 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run build
-      - run: npx playwright test journey a11y-app
+      - name: Journey
+        run: npx playwright test journey
+      - name: Accessibility, signed in
+        if: always()
+        run: npx playwright test a11y-app

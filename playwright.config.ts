@@ -6,7 +6,7 @@ export default defineConfig({
   testMatch: "**/*.spec.ts",
   timeout: 60_000,
   retries: process.env.CI ? 1 : 0,
-  reporter: [["list"]],
+  reporter: process.env.CI ? [["list"], ["github"]] : [["list"]],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? `http://localhost:${port}`,
     trace: "retain-on-failure",
