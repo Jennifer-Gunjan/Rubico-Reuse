@@ -57,3 +57,44 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: npx vitest run tests/concurrency
+  e2e-anonymous:
+    # Browser tests that need no accounts: login page, domain message, protected pages, closed cron route.
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:9
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npx playwright test
+  e2e-journey:
+    # Two real accounts: post, request, accept, handover, against the live Supabase project. Needs the LIVE_TEST_*_2 secrets.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    needs: check
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL || 'https://mdznlxohnjfbybihbtfe.supabase.co' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY || 'sb_publishable_Ewt_4WTCXYOsfIn6IUydMg_tefg8Xjp' }}
+      E2E_EMAIL: ${{ secrets.LIVE_TEST_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.LIVE_TEST_PASSWORD }}
+      E2E_EMAIL_2: ${{ secrets.LIVE_TEST_EMAIL_2 }}
+      E2E_PASSWORD_2: ${{ secrets.LIVE_TEST_PASSWORD_2 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - name: Fail if secrets are missing (otherwise the journey would silently skip)
+        run: |
+          missing=""
+          for v in E2E_EMAIL E2E_PASSWORD E2E_EMAIL_2 E2E_PASSWORD_2; do
+            [ -n "${!v}" ] || missing="$missing $v"
+          done
+          [ -z "$missing" ] || { echo "Missing (set LIVE_TEST_EMAIL, LIVE_TEST_PASSWORD, LIVE_TEST_EMAIL_2, LIVE_TEST_PASSWORD_2):$missing"; exit 1; }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npx playwright test journey
