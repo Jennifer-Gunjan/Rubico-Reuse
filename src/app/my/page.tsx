@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ActionButton } from "@/components/ActionButton";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { Nav } from "@/components/Nav";
 import { TYPES } from "@/lib/listing";
@@ -23,7 +24,7 @@ export default async function My() {
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {["available", "requested", "returned"].includes(l.status) && <Link className="btn secondary" href={`/listings/${l.id}/edit`}>Edit</Link>}
                 {["available", "requested"].includes(l.status) && <ConfirmButton label="Close" busyLabel="Closing…" title="Close this listing?" message="It leaves Browse and pending requests are declined. You can relist it later." run={closeListing.bind(null, l.id)} />}
-                {l.status === "closed" && <form action={reopenListing.bind(null, l.id)}><button className="btn secondary">Relist</button></form>}
+                {l.status === "closed" && <ActionButton label="Relist" busyLabel="Relisting…" run={reopenListing.bind(null, l.id)} />}
               </div>
             </li>
           ))}
