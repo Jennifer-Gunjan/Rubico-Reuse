@@ -1,3 +1,4 @@
+import nodemailer from "nodemailer";
 import { supabaseAdmin } from "./supabase/admin";
 
 export const MAX_ATTEMPTS = 3;
@@ -7,6 +8,20 @@ export type Contact = { name: string; email: string; teams_handle: string | null
 
 /** Per the notification table: only "request accepted" and "I have this" emails carry the other person's contact details. */
 export const CONTACT_TYPES = ["request_accepted", "wanted_response"];
+
+/** SMTP sender (Gmail by default, any SMTP host works). Returns false when not configured or on any failure. */
+export async function sendMail(m: { to: string; subject: string; text: string }): Promise<boolean> {
+  const user = process.env.SMTP_USER, pass = process.env.SMTP_PASS;
+  if (!user || !pass) return false;
+  try {
+    const port = Number(process.env.SMTP_PORT ?? 465);
+    const t = nodemailer.createTransport({ host: process.env.SMTP_HOST ?? "smtp.gmail.com", port, secure: port === 465, auth: { user, pass } });
+    await t.sendMail({ from: process.env.SMTP_FROM ?? `Rubico ReUse <${user}>`, ...m });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 /** Plain-text email for a notification. Pure, so it is unit tested. */
 export function emailFor(n: N, appUrl: string, contact?: Contact | null) {
@@ -32,12 +47,10 @@ async function contactFor(db: ReturnType<typeof supabaseAdmin>, n: N): Promise<C
 /** Sends pending notification emails. Safe to call often; each row is tried at most MAX_ATTEMPTS times. Never throws. */
 export async function flushOutbox(): Promise<{ sent: number; failed: number }> {
   const out = { sent: 0, failed: 0 };
-  const key = process.env.RESEND_API_KEY;
-  if (!key || !process.env.SUPABASE_SERVICE_ROLE_KEY) return out; // not configured: leave rows pending
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.SUPABASE_SERVICE_ROLE_KEY) return out; // not configured: leave rows pending
   try {
     const db = supabaseAdmin();
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://rubico-reuse.vercel.app";
-    const from = process.env.RESEND_FROM ?? "Rubico ReUse <onboarding@resend.dev>";
     const { data } = await db.from("notifications")
       .select("id,type,message,payload,email_attempts,profiles(email)")
       .eq("email_status", "pending").lt("email_attempts", MAX_ATTEMPTS).order("created_at").limit(25);
@@ -46,12 +59,7 @@ export async function flushOutbox(): Promise<{ sent: number; failed: number }> {
       let ok = false;
       if (to) {
         const mail = emailFor(n, appUrl, await contactFor(db, n));
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ from, to, ...mail }),
-        }).catch(() => null);
-        ok = !!res?.ok;
+        ok = await sendMail({ to, ...mail });
       }
       const attempts = n.email_attempts + 1;
       await db.from("notifications").update({
@@ -75,14 +83,7 @@ export function reportEmail(r: { title: string; listingId: string; reason: strin
 
 /** Emails the product owner about a reported listing. Best effort; the report row is already saved. */
 export async function sendReport(r: Parameters<typeof reportEmail>[0]): Promise<boolean> {
-  const key = process.env.RESEND_API_KEY, to = process.env.PRODUCT_OWNER_EMAIL;
-  if (!key || !to) return false;
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://rubico-reuse.vercel.app";
-  const from = process.env.RESEND_FROM ?? "Rubico ReUse <onboarding@resend.dev>";
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from, to, ...reportEmail(r, appUrl) }),
-  }).catch(() => null);
-  return !!res?.ok;
+  const to = process.env.PRODUCT_OWNER_EMAIL;
+  if (!to) return false;
+  return sendMail({ to, ...reportEmail(r, process.env.NEXT_PUBLIC_APP_URL ?? "https://rubico-reuse.vercel.app") });
 }
