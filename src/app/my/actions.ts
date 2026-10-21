@@ -7,17 +7,19 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 const UUID = /^[0-9a-f-]{36}$/i;
 
-export async function closeListing(id: string) {
-  if (!UUID.test(id)) return;
-  await (await supabaseServer()).rpc("close_listing", { p_listing: id });
+export async function closeListing(id: string): Promise<{ error?: string }> {
+  if (!UUID.test(id)) return { error: "Listing not found." };
+  const { error } = await (await supabaseServer()).rpc("close_listing", { p_listing: id });
   after(flushOutbox);
   revalidatePath("/my");
+  return error ? { error: error.message || "Could not close this listing. Please try again." } : {};
 }
 
-export async function reopenListing(id: string) {
-  if (!UUID.test(id)) return;
-  await (await supabaseServer()).from("listings").update({ status: "available" }).eq("id", id).eq("status", "closed");
+export async function reopenListing(id: string): Promise<{ error?: string }> {
+  if (!UUID.test(id)) return { error: "Listing not found." };
+  const { data, error } = await (await supabaseServer()).from("listings").update({ status: "available" }).eq("id", id).eq("status", "closed").select("id");
   revalidatePath("/my");
+  return error || !data?.length ? { error: "Could not relist this item. Please try again." } : {};
 }
 
 export async function updateListing(id: string, input: ListingInput): Promise<{ error?: string }> {
