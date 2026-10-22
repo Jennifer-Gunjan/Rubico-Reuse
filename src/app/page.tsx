@@ -26,7 +26,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         <h1>Give things a second life, inside Rubico.</h1>
         <p className="lead">Donate, exchange, sell or lend what you no longer need. Ask for what you are looking for.</p>
         {!!total && <p className="mono muted">{total} {total === 1 ? "item" : "items"} available now in Haridwar and Dehradun</p>}
-        <section className="card" aria-labelledby="signin" style={{ marginTop: 32 }}>
+        <section className="card signin" aria-labelledby="signin" style={{ marginTop: 32 }}>
           <h2 id="signin">Sign in to request, post or message</h2>
           {error && <p className="error" role="alert">{ERRORS[error] ?? ERRORS.signin}</p>}
           <LoginForm next={next ? safeNext(next, "") || undefined : undefined} />
