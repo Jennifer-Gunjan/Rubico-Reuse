@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Rubico ReUse: internal marketplace (donate / exchange / sell / lend) for Rubico employees. Next.js App Router + Supabase (Postgres, Auth, Storage), deployed on Vercel. `docs/HANDOVER.md` is the ops runbook (env vars, release/rollback, backup, moderation SQL); `docs/DEMO_AND_UAT.md` is the demo script and acceptance checklist.
+Rubico ReUse: internal marketplace (donate / exchange / sell / lend) for Rubico employees. Next.js App Router + Supabase (Postgres, Auth, Storage), deployed on Vercel. `README.md` has full setup (Supabase, Google sign-in, SMTP, Vercel) and a troubleshooting table; `docs/HANDOVER.md` is the ops runbook (release/rollback, backup, moderation SQL); `docs/DEMO_AND_UAT.md` is the demo script. Docs still say "Next.js 15" in places; check `package.json` for the real version.
 
 ## Commands
 
@@ -15,7 +15,7 @@ npm run build
 npm run e2e                  # Playwright; starts `next start` on :3100, so run `npm run build` first
 ```
 
-CI runs `lint && typecheck && test && build`. Single test: `npx vitest run src/lib/transitions.test.ts` or `npx vitest run -t "name"`; single e2e: `npx playwright test anonymous`.
+CI (`.github/workflows/ci.yml`) runs `lint && typecheck && test && build`; branches are tested via their PR (push triggers only on `main`), and the two live jobs share a `live-accounts` concurrency group because they use the same test accounts. Single test: `npx vitest run src/lib/transitions.test.ts` or `npx vitest run -t "name"`; single e2e: `npx playwright test anonymous`.
 
 Some suites skip unless env vars are set (CI sets them):
 - `tests/concurrency` needs `CONCURRENCY_DATABASE_URL` pointing at an **empty scratch Postgres**. It drops the `public`, `auth` and `storage` schemas.
@@ -42,3 +42,12 @@ Some suites skip unless env vars are set (CI sets them):
 **Tests by layer:** `src/lib/*.test.ts` unit (pure logic); `tests/db` rules on PGlite; `tests/api` route handlers; `tests/concurrency` races on real Postgres; `tests/live` the deployed Supabase API; `tests/e2e` Playwright (anonymous + axe accessibility run everywhere; the two-account journey is gated on credentials and leaves `[E2E]` listings in the live DB).
 
 Path alias `@/` maps to `src/`. Listing photos come from the Supabase Storage bucket `listing-images`; `next.config.mjs` derives the allowed image host from `NEXT_PUBLIC_SUPABASE_URL`.
+
+## Gotchas
+
+- Apply a new migration in Supabase **before** merging code that needs it (e.g. 0005 for the public preview, otherwise Browse shows empty).
+- Server action files must export `async function` declarations only.
+- No query strings in the Supabase redirect URL: the post-login destination travels in the short-lived `reuse_next` cookie.
+- New views must `revoke all` and grant SELECT only; Supabase grants broad rights on new objects by default.
+- Photos: JPG/PNG, 2 MB max (`src/lib/photo.ts` holds the checks and `uploadPhoto`).
+- Restart `npm run dev` after editing `.env.local`; the image host list is read once at start-up.
