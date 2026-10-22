@@ -3,6 +3,8 @@ import { Nav } from "@/components/Nav";
 import { supabaseServer } from "@/lib/supabase/server";
 import { markAllRead } from "./actions";
 
+export const metadata = { title: "Notifications" };
+
 export default async function Notifications() {
   const sb = await supabaseServer();
   const { data } = await sb.from("notifications").select("id,type,message,payload,read_at,created_at").order("created_at", { ascending: false }).limit(50);

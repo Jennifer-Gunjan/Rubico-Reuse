@@ -58,7 +58,8 @@ a { color: inherit; }
 
 .hero { padding-top: 64px; padding-bottom: 48px; }
 .hero p.lead { font-size: 1.25rem; max-width: 36rem; }
-.login { display: grid; gap: 16px; max-width: 28rem; }
+.login { display: grid; gap: 16px; max-width: 28rem; grid-template-columns: minmax(0, 1fr); }
+.login input[type="file"], .login label { max-width: 100%; min-width: 0; }
 @media (max-width: 640px) { .hero { padding-top: 32px; padding-bottom: 32px; } .card { padding: 20px; } }
 
 .filters { display: grid; gap: 8px; grid-template-columns: 2fr 1fr 1fr 1fr auto; margin: 16px 0 24px; }

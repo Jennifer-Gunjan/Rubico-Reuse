@@ -3,6 +3,8 @@ import { Nav } from "@/components/Nav";
 import { supabaseServer } from "@/lib/supabase/server";
 import { WantedForm } from "../WantedForm";
 
+export const metadata = { title: "Post a wanted item" };
+
 export default async function NewWanted() {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();

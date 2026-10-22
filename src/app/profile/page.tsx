@@ -23,6 +23,8 @@ async function save(form: FormData) {
   redirect(next);
 }
 
+export const metadata = { title: "Profile" };
+
 export default async function Profile({ searchParams }: { searchParams: Promise<{ error?: string; welcome?: string }> }) {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
