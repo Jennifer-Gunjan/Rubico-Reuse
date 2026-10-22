@@ -12,6 +12,7 @@ npm run lint                 # eslint, --max-warnings=0
 npm run typecheck
 npm test                     # vitest: src/**/*.test.ts and tests/**/*.test.ts
 npm run build
+npm run verify               # lint + typecheck + tests (what to run before pushing); `npm run hooks` enables a pre-push lint+typecheck
 npm run e2e                  # Playwright; starts `next start` on :3100, so run `npm run build` first
 ```
 
