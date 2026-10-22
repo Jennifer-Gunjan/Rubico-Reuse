@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cleanSearch, priceLabel, timeAgo, validateListing, type ListingInput } from "./listing";
+import { cleanFilters, cleanSearch, priceLabel, timeAgo, validateListing, type ListingInput } from "./listing";
 
 const ok: ListingInput = { title: "Study desk", description: "Solid wood", category: "Furniture", condition: "good", type: "donate", location: "Dehradun" };
 
@@ -57,4 +57,11 @@ describe("tile helpers", () => {
     expect(priceLabel("donate", null)).toBe("Free");
     expect(priceLabel("lend", null)).toBe("Lend");
   });
+});
+
+describe("cleanFilters", () => {
+  it("drops values the dropdowns do not offer", () =>
+    expect(cleanFilters({ category: "bogus", type: "bogus", location: "Mars", q: " " })).toEqual({ q: undefined, category: undefined, location: undefined, type: undefined }));
+  it("keeps valid values", () =>
+    expect(cleanFilters({ category: "Books", type: "donate", location: "Dehradun", q: "desk" })).toEqual({ q: "desk", category: "Books", location: "Dehradun", type: "donate" }));
 });

@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
-import { CATEGORIES, LOCATIONS, cleanSearch } from "@/lib/listing";
+import { CATEGORIES, LOCATIONS, cleanFilters, cleanSearch } from "@/lib/listing";
 import { supabaseServer } from "@/lib/supabase/server";
 import { HaveThis } from "./HaveThis";
 
 type SP = { q?: string; category?: string; location?: string };
 
+export const metadata = { title: "Wanted" };
+
 export default async function Wanted({ searchParams }: { searchParams: Promise<SP> }) {
-  const sp = await searchParams;
+  const sp = cleanFilters(await searchParams);
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();
   let query = sb.from("wanted_posts").select("id,poster_id,title,description,category,location").eq("status", "open").order("created_at", { ascending: false }).limit(60);

@@ -6,6 +6,8 @@ import { TYPES } from "@/lib/listing";
 import { supabaseServer } from "@/lib/supabase/server";
 import { closeListing, reopenListing } from "./actions";
 
+export const metadata = { title: "My listings" };
+
 export default async function My() {
   const sb = await supabaseServer();
   const { data: { user } } = await sb.auth.getUser();

@@ -7,7 +7,14 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { ReportForm } from "./ReportForm";
 import { RequestPanel, type Req } from "./RequestPanel";
 
-export const metadata = { robots: { index: false, follow: false } }; // the listing preview is public, keep it out of search engines
+// the listing preview is public, keep it out of search engines
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const robots = { index: false, follow: false };
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return { robots };
+  const { data } = await (await supabaseServer()).from("public_listings").select("title").eq("id", id).maybeSingle();
+  return { robots, ...(data?.title && { title: data.title }) };
+}
 
 export default async function ListingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ photos?: string }> }) {
   const { id } = await params;
