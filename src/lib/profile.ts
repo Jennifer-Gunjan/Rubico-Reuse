@@ -1,4 +1,4 @@
-/** Same rule as the database's profile_complete(): a name, a city and a Teams handle. */
+/** Same rule as the database's profile_complete(): a name, a city and a Slack email. */
 export const profileComplete = (p: { name?: string | null; location?: string | null; teams_handle?: string | null } | null | undefined) =>
   !!p && !!p.name?.trim() && !!p.location && !!p.teams_handle?.trim();
 

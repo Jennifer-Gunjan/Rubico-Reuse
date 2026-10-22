@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isPublicPath, profileComplete, safeNext } from "./profile";
 
 describe("profileComplete", () => {
-  it("needs name, city and Teams handle", () => {
+  it("needs name, city and Slack email", () => {
     expect(profileComplete({ name: "Asha", location: "Dehradun", teams_handle: "asha" })).toBe(true);
     expect(profileComplete({ name: "Asha", location: null, teams_handle: "asha" })).toBe(false);
     expect(profileComplete({ name: "Asha", location: "Dehradun", teams_handle: "  " })).toBe(false);

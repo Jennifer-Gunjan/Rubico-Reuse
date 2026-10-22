@@ -53,7 +53,7 @@ export default async function Wanted({ searchParams }: { searchParams: Promise<S
                         return (
                           <div key={r.responder_id} className="card" style={{ marginBottom: 8, padding: 16 }}>
                             <strong>{p?.name || "A colleague"}</strong>{p?.location && <span className="muted"> · {p.location}</span>}
-                            <p style={{ margin: "4px 0" }}>Teams: {p?.teams_handle ?? "not set"}<br />Email: {p?.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : "not available"}</p>
+                            <p style={{ margin: "4px 0" }}>Slack: {p?.teams_handle ?? "not set"}<br />Email: {p?.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : "not available"}</p>
                             {r.note && <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>&ldquo;{r.note}&rdquo;</p>}
                           </div>
                         );

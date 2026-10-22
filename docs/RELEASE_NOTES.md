@@ -5,11 +5,11 @@ Rubico colleagues in Haridwar and Dehradun donate, exchange, sell and lend items
 
 - **Public preview:** landing page, Browse and listing pages are readable without login (live items only, no giver identity or contact details, not indexed by search engines).
 - **Sign-in:** Google, or an emailed link. Only @rubicotech.com and @rubicotech.in accounts get in, enforced in the app and in the database.
-- **First login:** an incomplete profile (name, city, Teams handle) is completed before anything else, then the person continues where they were heading.
+- **First login:** an incomplete profile (name, city, Slack email) is completed before anything else, then the person continues where they were heading.
 - **Listings:** up to several photos, categories, condition, four types (donate, exchange, sell, lend), edit, close.
 - **Requests:** one active request per person per item, one accepted winner, withdraw, reject, fall-through to the next requester.
 - **Wanted board:** post what you need; colleagues respond with "I have this".
-- **Contact details** (name, email, Teams) are shared only between the two matched people, in the app and in the acceptance email.
+- **Contact details** (name, email, Slack email) are shared only between the two matched people, in the app and in the acceptance email.
 - **Notifications:** in-app, plus email over SMTP with automatic retry (3 attempts, daily retry job).
 - **Safety:** banned-item keyword filter, report-a-listing to the product owner.
 
