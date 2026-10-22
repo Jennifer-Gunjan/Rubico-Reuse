@@ -184,7 +184,8 @@ CI (`.github/workflows/ci.yml`): `check`, `races` and `e2e-anonymous` run on eve
 
 1. Branch from `main`: `git checkout -b my-change`.
 2. Make the change. For a new rule or table, add a new migration file and a test in `tests/db`.
-3. Run `npm run lint && npm run typecheck && npm test && npm run build`.
+3. Run `npm run verify` (lint, typecheck, tests; about 70 seconds, mostly the database tests), then `npm run build`. While editing, `npx vitest run --changed` reruns only affected tests, but it does not notice SQL changes: after touching `supabase/migrations` run `npx vitest run tests/db`.
+   Optional: `npm run hooks` once per clone turns on a pre-push check (lint and typecheck only, about 20 seconds). Skip it for one push with `git push --no-verify`.
 4. Push and open a pull request into `main`. Merge when CI is green.
 
 Conventions: server actions are `async function` declarations; do not put query strings in the Supabase redirect URL (the post-login destination travels in a short-lived cookie); views must `revoke all` and grant SELECT only, because Supabase grants broad rights on new objects by default.

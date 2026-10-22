@@ -1,0 +1,3 @@
+#!/bin/sh
+# Pre-push: quick checks only (tests run in CI). Enable with `npm run hooks`; skip once with `git push --no-verify`.
+npm run lint && npm run typecheck
