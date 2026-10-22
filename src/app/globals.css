@@ -114,3 +114,6 @@ img { max-width: 100%; }
 /* How it works */
 .steps { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .steps p { margin: 8px 0 0; }
+
+/* Sign-in card is only as wide as its form (28rem + padding), not the whole page */
+.signin { max-width: 32rem; }
