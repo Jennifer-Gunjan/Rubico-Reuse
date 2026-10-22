@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PhotoPicker } from "@/components/PhotoPicker";
 import { Ready } from "@/components/Ready";
 import { CATEGORIES, CONDITIONS, LOCATIONS, TYPES, type ListingInput } from "@/lib/listing";
@@ -14,13 +14,15 @@ export function NewListingForm({ uid, defaultLocation }: { uid: string; defaultL
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const sent = useRef(false);
   const set = (k: keyof ListingInput, v: string | boolean) => setF((p) => ({ ...p, [k]: v }));
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setBusy(true); setError(null);
+    if (sent.current) return; // a ref blocks a second click that lands before the re-render
+    sent.current = true; setBusy(true); setError(null);
     const res = await createListing(f);
-    if (!res.id) { setBusy(false); return setError(res.error ?? "Could not post."); }
+    if (!res.id) { sent.current = false; setBusy(false); return setError(res.error ?? "Could not post."); }
     const sb = supabaseBrowser();
     let pos = 0, failed = 0; // positions stay 0,1,2.. so the first photo that works is always the cover
     for (const [i, file] of files.entries()) {
