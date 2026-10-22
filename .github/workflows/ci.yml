@@ -1,15 +1,17 @@
 name: CI
 on:
   push:
+    branches: [main] # branches are tested through their pull request, so a push is not run twice
   pull_request:
   workflow_dispatch:
-# The live jobs share two test accounts, so only one run per branch at a time (a newer push cancels the older run).
+# A newer push cancels the older run on a branch or PR, but never a run on main (its live tests must finish).
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -24,6 +26,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Both live jobs use the same test accounts: queue them (also across runs), never cancel one midway.
+    concurrency: { group: live-accounts, cancel-in-progress: false }
     env:
       # URL and publishable key are public (they ship in the website), so a missing secret falls back to them.
       LIVE_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL || 'https://mdznlxohnjfbybihbtfe.supabase.co' }}
@@ -46,6 +51,7 @@ jobs:
   races:
     # Real Postgres service: two simultaneous accepts must give exactly one winner. No secrets needed.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     services:
       postgres:
         image: postgres:16
@@ -64,6 +70,7 @@ jobs:
   e2e-anonymous:
     # Browser tests that need no accounts: login page, domain message, protected pages, closed cron route.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:9
       NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy
@@ -80,6 +87,9 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     needs: check
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Both live jobs use the same test accounts: queue them (also across runs), never cancel one midway.
+    concurrency: { group: live-accounts, cancel-in-progress: false }
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL || 'https://mdznlxohnjfbybihbtfe.supabase.co' }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY || 'sb_publishable_Ewt_4WTCXYOsfIn6IUydMg_tefg8Xjp' }}
