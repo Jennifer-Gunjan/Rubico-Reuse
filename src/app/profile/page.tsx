@@ -33,8 +33,8 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
       <Nav />
       <main className="wrap hero">
         <h1>{welcome ? "Welcome! Complete your profile" : "Your profile"}</h1>
-        {welcome && <p className="card" role="status">One quick step before you start: add your name, city and Teams handle.</p>}
-        <p className="muted">Name, city and Teams handle are needed before you can post or request. Your Teams handle is shown only to the person you are matched with.</p>
+        {welcome && <p className="card" role="status">One quick step before you start: add your name, city and Slack email.</p>}
+        <p className="muted">Name, city and Slack email are needed before you can post or request. Your Slack email is shown only to the person you are matched with.</p>
         <form action={save} className="card login" style={{ marginTop: 24 }}>
           {error && <p className="error" role="alert">{error === "missing" ? "Your profile record was not found. Sign out, sign in again, and tell the product owner if this repeats." : "Fill in every field."}</p>}
           <label>Name<input className="field" name="name" defaultValue={p?.name ?? ""} required /></label>
@@ -44,7 +44,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
               {LOCATIONS.map((l) => <option key={l}>{l}</option>)}
             </select>
           </label>
-          <label>Teams handle<input className="field" name="teams_handle" defaultValue={p?.teams_handle ?? ""} placeholder="name@rubicotech.com" required /></label>
+          <label>Slack email<input className="field" name="teams_handle" defaultValue={p?.teams_handle ?? ""} placeholder="name@rubicotech.com" required /></label>
           <button className="btn" type="submit">Save</button>
         </form>
       </main>

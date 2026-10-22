@@ -18,6 +18,6 @@ export async function createListing(input: ListingInput): Promise<{ id?: string;
     wanted_in_return: input.type === "exchange" ? input.wanted_in_return?.trim() || null : null,
     lend_duration_text: input.type === "lend" ? input.lend_duration_text?.trim() || null : null,
   }).select("id").single();
-  if (error) return { error: "Could not post. Complete your profile (city and Teams handle) first." };
+  if (error) return { error: "Could not post. Complete your profile (city and Slack email) first." };
   return { id: data.id };
 }

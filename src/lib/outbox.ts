@@ -26,7 +26,7 @@ export async function sendMail(m: { to: string; subject: string; text: string })
 /** Plain-text email for a notification. Pure, so it is unit tested. */
 export function emailFor(n: N, appUrl: string, contact?: Contact | null) {
   const link = n.payload?.listing_id ? `${appUrl}/listings/${n.payload.listing_id}` : `${appUrl}/notifications`;
-  const who = contact && CONTACT_TYPES.includes(n.type) ? `\n\nContact: ${contact.name}\nEmail: ${contact.email}\nTeams: ${contact.teams_handle ?? "not set"}` : "";
+  const who = contact && CONTACT_TYPES.includes(n.type) ? `\n\nContact: ${contact.name}\nEmail: ${contact.email}\nSlack: ${contact.teams_handle ?? "not set"}` : "";
   return { subject: `Rubico ReUse: ${n.message}`, text: `${n.message}${who}\n\nOpen it here: ${link}\n\nYou get this email because you use Rubico ReUse.` };
 }
 

@@ -17,7 +17,7 @@ export async function createWanted(input: WantedInput): Promise<{ error?: string
     poster_id: user.id, title: input.title.trim(), description: input.description.trim(), category: input.category, location: input.location,
   });
   revalidatePath("/wanted");
-  return error ? { error: "Could not post. Complete your profile (city and Teams handle) first." } : {};
+  return error ? { error: "Could not post. Complete your profile (city and Slack email) first." } : {};
 }
 
 export async function respondWanted(id: string, note: string): Promise<{ error?: string }> {

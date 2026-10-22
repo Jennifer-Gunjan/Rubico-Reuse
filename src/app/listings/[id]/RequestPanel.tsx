@@ -24,7 +24,7 @@ export function RequestPanel(p: Props) {
   const contactBox = p.contact && (
     <div className="card" role="status">
       <h2>Contact</h2>
-      <p>{p.contact.name}<br />Teams: {p.contact.teams_handle}<br />Email: {p.contact.email}</p>
+      <p>{p.contact.name}<br />Slack: {p.contact.teams_handle}<br />Email: {p.contact.email}</p>
       <p className="muted">Arrange the handover directly. When it is done, the giver marks the item.</p>
     </div>
   );

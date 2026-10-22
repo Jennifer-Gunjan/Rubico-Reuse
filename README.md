@@ -27,12 +27,12 @@ An internal marketplace where Rubico colleagues in **Haridwar** and **Dehradun**
 | --- | --- |
 | Preview | Landing page, Browse and listing pages are readable signed out. Only live items show, with no giver name or contact details. Listing pages ask search engines not to index them |
 | Sign-in | Google, or an emailed link. Accounts outside the two Rubico domains are refused and signed out |
-| First login | Name, city and Teams handle must be filled in first; the person then continues where they were heading |
+| First login | Name, city and Slack email must be filled in first; the person then continues where they were heading |
 | Listings | Title, description, category, condition, city, up to four photos (JPG or PNG, 2 MB each). Types: **Free**, **Exchange**, **Sell** (price, negotiable), **Lend** (duration). Edit, close, relist |
 | Search | Text search plus category, city and type filters |
 | Requests | A message and optional offered items. One active request per person per item. Withdraw, reject, accept. One winner only; if a deal falls through the item returns to Available |
 | Hand-over | Given, Lent, Returned and relist states |
-| Contact sharing | Name, email and Teams handle are shared **only between the two matched people** after Accept |
+| Contact sharing | Name, email and Slack email are shared **only between the two matched people** after Accept |
 | Wanted board | Post what you need; colleagues answer "I have this"; mark fulfilled |
 | Notifications | In-app list with a count in the menu, plus emails (with retries) |
 | Safety | Banned-item keyword filter on listings and wanted posts; "Report this listing" goes to the product owner |
