@@ -18,6 +18,11 @@ export default async function Wanted({ searchParams }: { searchParams: Promise<S
   const { data: posts } = await query;
   const { data: mine } = await sb.from("wanted_responses").select("wanted_id").eq("responder_id", user!.id);
   const responded = new Set((mine ?? []).map((r) => r.wanted_id));
+  // Responses to the posts I made, with each responder's contact (the database lets a poster read exactly these profiles).
+  const myIds = (posts ?? []).filter((w) => w.poster_id === user!.id).map((w) => w.id);
+  const { data: resp } = myIds.length ? await sb.from("wanted_responses").select("wanted_id,responder_id,note,created_at").in("wanted_id", myIds).order("created_at") : { data: [] };
+  const rids = [...new Set((resp ?? []).map((r) => r.responder_id))];
+  const { data: people } = rids.length ? await sb.from("profiles").select("id,name,email,teams_handle,location").in("id", rids) : { data: [] };
 
   return (
     <>
@@ -38,6 +43,24 @@ export default async function Wanted({ searchParams }: { searchParams: Promise<S
                 <h2>{w.title}</h2>
                 <p className="mono muted">{w.category} · {w.location}</p>
                 <p style={{ whiteSpace: "pre-wrap" }}>{w.description}</p>
+                {w.poster_id === user!.id && (() => {
+                  const rs = (resp ?? []).filter((r) => r.wanted_id === w.id);
+                  return (
+                    <section aria-label={`Responses to ${w.title}`}>
+                      <h3 style={{ margin: "8px 0" }}>{rs.length ? `Responses (${rs.length})` : "No responses yet"}</h3>
+                      {rs.map((r) => {
+                        const p = people?.find((x) => x.id === r.responder_id);
+                        return (
+                          <div key={r.responder_id} className="card" style={{ marginBottom: 8, padding: 16 }}>
+                            <strong>{p?.name || "A colleague"}</strong>{p?.location && <span className="muted"> · {p.location}</span>}
+                            <p style={{ margin: "4px 0" }}>Teams: {p?.teams_handle ?? "not set"}<br />Email: {p?.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : "not available"}</p>
+                            {r.note && <p style={{ margin: "4px 0", whiteSpace: "pre-wrap" }}>&ldquo;{r.note}&rdquo;</p>}
+                          </div>
+                        );
+                      })}
+                    </section>
+                  );
+                })()}
                 <HaveThis id={w.id} mine={w.poster_id === user!.id} responded={responded.has(w.id)} />
               </li>
             ))}
