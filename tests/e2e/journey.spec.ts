@@ -61,7 +61,7 @@ test.describe("journey", () => {
     await expect(giver.getByText("I would like this, thank you")).toBeVisible();
     await giver.getByRole("button", { name: "Accept" }).click();
     await giver.getByRole("dialog").getByRole("button", { name: "Accept" }).click(); // confirm
-    await expect(giver.getByText(/You accepted/)).toBeVisible();
+    await expect(giver.getByText(/You accepted/)).toBeVisible({ timeout: 30_000 }); // accept = RPC + notifications on the live project
     await expect(giver.getByRole("status")).toContainText(E2E_EMAIL_2!);
 
     // Seeker now sees the giver's contact.

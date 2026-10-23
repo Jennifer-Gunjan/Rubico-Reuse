@@ -116,3 +116,7 @@ jobs:
       - name: Accessibility, signed in
         if: always()
         run: npx playwright test a11y-app
+      - name: Keep Playwright traces when something failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with: { name: e2e-journey-traces, path: test-results, retention-days: 7 }
