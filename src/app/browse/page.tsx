@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { ListingGrid } from "@/components/ListingGrid";
 import { Nav } from "@/components/Nav";
-import { CATEGORIES, LOCATIONS, TYPES } from "@/lib/listing";
+import { CATEGORIES, LOCATIONS, TYPES, cleanFilters } from "@/lib/listing";
 import { liveListings } from "@/lib/public";
 import { supabaseServer } from "@/lib/supabase/server";
 
 type SP = { q?: string; category?: string; location?: string; type?: string };
 
+export const metadata = { title: "Browse" };
+
 export default async function Browse({ searchParams }: { searchParams: Promise<SP> }) {
-  const sp = await searchParams;
+  const sp = cleanFilters(await searchParams);
+  const filtered = Object.values(sp).some(Boolean);
   const items = await liveListings(await supabaseServer(), sp);
   return (
     <>
@@ -29,7 +32,9 @@ export default async function Browse({ searchParams }: { searchParams: Promise<S
           <button className="btn" type="submit">Search</button>
         </form>
         {!items.length ? (
-          <p className="card" style={{ marginTop: 24 }}>Nothing here yet. <Link href="/listings/new">Post the first item</Link>.</p>
+          filtered
+            ? <p className="card" style={{ marginTop: 24 }}>No items match your search. <Link href="/browse">Clear filters</Link>.</p>
+            : <p className="card" style={{ marginTop: 24 }}>Nothing here yet. <Link href="/listings/new">Post the first item</Link>.</p>
         ) : <ListingGrid items={items} />}
       </main>
     </>

@@ -29,6 +29,11 @@ export function validateListing(i: ListingInput): string | null {
 }
 
 /** Strip characters that would break a PostgREST or() filter or act as LIKE wildcards. */
+/** Keep only filter values the controls offer, so a bad URL shows everything instead of an empty list. */
+export function cleanFilters(sp: { q?: string; category?: string; location?: string; type?: string }) {
+  const pick = (v: string | undefined, ok: readonly string[]) => (v && ok.includes(v) ? v : undefined);
+  return { q: sp.q?.trim() || undefined, category: pick(sp.category, CATEGORIES), location: pick(sp.location, LOCATIONS), type: pick(sp.type, Object.keys(TYPES)) };
+}
 export const cleanSearch = (q: string) => q.replace(/[,()%_\\*]/g, " ").trim().slice(0, 60);
 
 /** Photo slots (0..3) not used by kept photos, lowest first; at most `count` returned. */

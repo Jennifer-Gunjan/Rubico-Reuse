@@ -12,7 +12,7 @@ export function ListingGrid({ items }: { items: Tile[] }) {
           <Link href={`/listings/${l.id}`}>
             <div className="imgbox">
               {l.image
-                ? <Image src={photoUrl(l.image)} alt="" fill sizes="(max-width: 640px) 100vw, 260px" style={{ objectFit: "cover" }} />
+                ? <Image src={photoUrl(l.image)} alt={l.title} fill sizes="(max-width: 640px) 100vw, 260px" style={{ objectFit: "cover" }} />
                 : <span className="icon" aria-hidden="true">{CATEGORY_ICON[l.category] ?? "📦"}</span>}
             </div>
             <h2>{l.title}</h2>
