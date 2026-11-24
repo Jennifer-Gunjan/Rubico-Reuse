@@ -55,16 +55,25 @@ export async function flushOutbox(): Promise<{ sent: number; failed: number }> {
       .select("id,type,message,payload,email_attempts,profiles(email)")
       .eq("email_status", "pending").lt("email_attempts", MAX_ATTEMPTS).order("created_at").limit(25);
     for (const n of data ?? []) {
+      // Claim the row before sending. This runs after every server action and from the
+      // cron, so sweeps overlap; bumping email_attempts only when it still holds the
+      // value we read means exactly one sweep takes the row and the rest skip it.
+      const attempts = n.email_attempts + 1;
+      const { data: claimed } = await db.from("notifications")
+        .update({ email_attempts: attempts })
+        .eq("id", n.id).eq("email_status", "pending").eq("email_attempts", n.email_attempts)
+        .select("id");
+      if (!claimed?.length) continue; // another sweep is already sending this one
+
       const to = (n.profiles as unknown as { email: string } | null)?.email;
       let ok = false;
       if (to) {
         const mail = emailFor(n, appUrl, await contactFor(db, n));
         ok = await sendMail({ to, ...mail });
       }
-      const attempts = n.email_attempts + 1;
+      // The attempt is already recorded, so a crash here costs one retry, never a repeat send.
       await db.from("notifications").update({
         email_status: ok ? "sent" : attempts >= MAX_ATTEMPTS ? "failed" : "pending",
-        email_attempts: attempts,
       }).eq("id", n.id);
       if (ok) out.sent++; else out.failed++;
     }
