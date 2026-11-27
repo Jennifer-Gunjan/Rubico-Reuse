@@ -26,7 +26,7 @@ Vercel, Settings, Environment Variables:
 | `NEXT_PUBLIC_APP_URL` | Links inside emails |
 | `CRON_SECRET` | Protects the daily email retry route |
 
-GitHub, Settings, Secrets and variables, Actions: `LIVE_TEST_EMAIL`, `LIVE_TEST_PASSWORD`, `LIVE_TEST_EMAIL_2`, `LIVE_TEST_PASSWORD_2` (two test accounts in Supabase Auth, auto-confirmed). If any secret leaks, rotate it in its own service and update it here.
+GitHub, Settings, Secrets and variables, Actions: `LIVE_TEST_EMAIL`, `LIVE_TEST_PASSWORD`, `LIVE_TEST_EMAIL_2`, `LIVE_TEST_PASSWORD_2` (two test accounts in Supabase Auth, auto-confirmed). These exist because **email + password sign-in is enabled on the project for the tests only** — it is not offered to users. Turning it off fails the `e2e-journey` and `live-api` jobs. See README section 13. If any secret leaks, rotate it in its own service and update it here.
 
 ## 3. Releasing and rolling back the website
 

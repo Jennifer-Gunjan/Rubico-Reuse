@@ -26,7 +26,7 @@ An internal marketplace where Rubico colleagues in **Haridwar** and **Dehradun**
 | Area | Behaviour |
 | --- | --- |
 | Preview | Landing page, Browse and listing pages are readable signed out. Only live items show, with no giver name or contact details. Listing pages ask search engines not to index them |
-| Sign-in | Google, or an emailed link. Accounts outside the two Rubico domains are refused and signed out |
+| Sign-in | Google, or an emailed link. Accounts outside the two Rubico domains are refused and signed out. **Email + password is also enabled on the project, for the automated tests only** — see section 13 |
 | First login | Name, city and Slack email must be filled in first; the person then continues where they were heading |
 | Listings | Title, description, category, condition, city, up to four photos (JPG or PNG, 2 MB each). Types: **Free**, **Exchange**, **Sell** (price, negotiable), **Lend** (duration). Edit, close, relist |
 | Search | Text search plus category, city and type filters |
@@ -232,6 +232,37 @@ delete from listings where id = '<listing id>';          -- take a listing down
 | Local `localhost` Postgres tests skip | Concurrency and live tests need their environment variables; `npm test` alone is enough for everyday work |
 
 ## 13. Known limits
+
+### Email + password sign-in is enabled, and is not offered to users
+
+The app offers two ways in: Google, and an emailed link. A third, **email + password, is enabled
+on the Supabase project** and is not surfaced anywhere in the product.
+
+It is there because the automated tests need a way to sign in without a mailbox:
+
+| Uses it | Why |
+|---|---|
+| `tests/e2e/auth.ts` | the two-account browser journey, and the signed-in accessibility sweep |
+| `tests/live/api.test.ts` | the live API checks |
+
+Both run against the real Supabase project, so **turning password sign-in off will fail the
+`e2e-journey` and `live-api` CI jobs.** It is a deliberate trade, not an oversight, and the
+alternatives are worse rather than better:
+
+- Giving CI a **service-role key** so the tests can mint sessions removes the password but hands
+  the build a credential that bypasses every row-level security policy. That is a larger risk
+  than two dedicated test accounts.
+- Driving the email link in CI needs a mailbox the build can read, which is more moving parts
+  for the same result.
+
+What should be true while it stays on:
+
+- Only the dedicated test accounts should have passwords set. Real colleagues sign in with Google
+  or a link and never set one.
+- Those passwords live in GitHub Actions secrets (`LIVE_TEST_PASSWORD`, `LIVE_TEST_PASSWORD_2`)
+  and should be rotated like any other credential.
+- There is no multi-factor authentication on this path, which is the reason it is worth writing
+  down rather than leaving for someone to discover.
 
 - The banned-item list is a keyword filter, light protection only; confirm the list with the product owner.
 - Gmail SMTP: about 500 emails a day; may reach spam at first.
