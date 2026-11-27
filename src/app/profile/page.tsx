@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Nav } from "@/components/Nav";
 import { LOCATIONS } from "@/lib/listing";
-import { safeNext } from "@/lib/profile";
+import { PROFILE_ERRORS, safeNext, validateProfile, type ProfileError } from "@/lib/profile";
 import { supabaseServer } from "@/lib/supabase/server";
 
 async function save(form: FormData) {
@@ -13,10 +13,11 @@ async function save(form: FormData) {
   const name = String(form.get("name") ?? "").trim();
   const location = String(form.get("location") ?? "");
   const teams = String(form.get("teams_handle") ?? "").trim();
-  if (!name || !teams || !(LOCATIONS as readonly string[]).includes(location)) redirect("/profile?error=1");
+  const bad = validateProfile({ name, location, teams_handle: teams }, LOCATIONS);
+  if (bad) redirect(`/profile?error=${bad}`);
   const { data, error } = await sb.from("profiles").update({ name, location, teams_handle: teams }).eq("id", user.id).select("id");
   // Zero rows updated means the profile row is missing: say so instead of pretending it saved.
-  if (error || !data?.length) redirect(error ? "/profile?error=1" : "/profile?error=missing");
+  if (error || !data?.length) redirect(error ? "/profile?error=save" : "/profile?error=missing");
   const jar = await cookies();
   const next = safeNext(jar.get("reuse_next")?.value); // where they were heading before sign-in
   jar.delete("reuse_next");
@@ -38,7 +39,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         {welcome && <p className="card" role="status">One quick step before you start: add your name, city and Slack email.</p>}
         <p className="muted">Name, city and Slack email are needed before you can post or request. Your Slack email is shown only to the person you are matched with.</p>
         <form action={save} className="card login" style={{ marginTop: 24 }}>
-          {error && <p className="error" role="alert">{error === "missing" ? "Your profile record was not found. Sign out, sign in again, and tell the product owner if this repeats." : "Fill in every field."}</p>}
+          {error && <p className="error" role="alert">{PROFILE_ERRORS[error as ProfileError] ?? PROFILE_ERRORS.save}</p>}
           <label>Name<input className="field" name="name" defaultValue={p?.name ?? ""} required /></label>
           <label>City
             <select className="field" name="location" defaultValue={p?.location ?? ""} required>

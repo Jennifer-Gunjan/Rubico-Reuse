@@ -65,3 +65,21 @@ describe("cleanFilters", () => {
   it("keeps valid values", () =>
     expect(cleanFilters({ category: "Books", type: "donate", location: "Dehradun", q: "desk" })).toEqual({ q: "desk", category: "Books", location: "Dehradun", type: "donate" }));
 });
+
+import { validateRequest } from "./listing";
+describe("validateRequest", () => {
+  it("accepts a normal message", () => expect(validateRequest("Could I collect this on Friday?")).toBeNull());
+  it("rejects an empty or whitespace-only message", () => {
+    // HTML `required` accepts spaces, so without this the database rejects it instead.
+    expect(validateRequest("")).toMatch(/short message/);
+    expect(validateRequest("     ")).toMatch(/short message/);
+  });
+  it("rejects a message past the column limit", () => {
+    expect(validateRequest("x".repeat(1001))).toMatch(/under 1000/);
+    expect(validateRequest("x".repeat(1000))).toBeNull();
+  });
+  it("rejects over-long offered items", () => {
+    expect(validateRequest("hello", "y".repeat(1001))).toMatch(/offering under 1000/);
+    expect(validateRequest("hello", "y".repeat(1000))).toBeNull();
+  });
+});

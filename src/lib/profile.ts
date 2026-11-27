@@ -12,3 +12,48 @@ export function safeNext(next: string | null | undefined, fallback = "/browse"):
  *  the cron route (it checks its own secret) and the health check (status words only). */
 export const isPublicPath = (p: string) =>
   ["/", "/browse", "/auth/callback", "/api/cron/emails", "/api/health"].includes(p) || /^\/listings\/[0-9a-f-]{36}$/i.test(p);
+
+/**
+ * A way to reach someone on Slack: either an address (name@host.tld) or a handle
+ * (@asha or asha). Mirrors the DB check in 0009.
+ *
+ * Deliberately permissive. The product disagrees with itself about this field: the column
+ * is `teams_handle`, the fixtures store handles like "@alice", but the form labels it
+ * "Slack email" and suggests name@rubicotech.com. Until that is settled, rejecting either
+ * form would break real data. What this does catch is text that cannot be a contact at
+ * all - punctuation, spaces, a bare "@".
+ */
+export const CONTACT = /^(@?[A-Za-z0-9._-]{2,}|[^@\s]+@[^@\s]+\.[^@\s]+)$/;
+
+export type ProfileInput = { name: string; location: string; teams_handle: string };
+
+/**
+ * Codes rather than sentences, so the page never renders text taken from the URL. A crafted
+ * ?error= could otherwise put any words in the error box, which is a social-engineering
+ * vector even though React escapes it.
+ */
+export const PROFILE_ERRORS = {
+  name: "Add your name.",
+  city: "Choose your city.",
+  handle: "Add your Slack email.",
+  handle_format: "Enter your Slack email or handle, for example name@rubicotech.com or @name.",
+  missing: "Your profile record was not found. Sign out, sign in again, and tell the product owner if this repeats.",
+  save: "Could not save your profile. Please try again.",
+} as const;
+export type ProfileError = keyof typeof PROFILE_ERRORS;
+
+/**
+ * Returns an error message, or null when the input is acceptable.
+ *
+ * The Slack email matters more than it looks: after a giver accepts, this is the address
+ * emailed to the matched colleague as the way to reach them. Nothing downstream can tell
+ * that "asdf" is not reachable, so the hand-over simply fails in silence.
+ */
+export function validateProfile(i: ProfileInput, locations: readonly string[]): ProfileError | null {
+  if (!i.name.trim()) return "name";
+  if (!locations.includes(i.location)) return "city";
+  const handle = i.teams_handle.trim();
+  if (!handle) return "handle";
+  if (!CONTACT.test(handle)) return "handle_format";
+  return null;
+}

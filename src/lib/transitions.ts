@@ -17,7 +17,7 @@ const MOVES: Record<ListingStatus, ListingStatus[]> = {
   available: ["requested", "closed"],
   requested: ["requested", "available", "accepted", "closed"],
   accepted: ["given", "lent", "available"],
-  lent: ["returned"],
+  lent: ["returned", "available"],   // available = recorded as not returned
   returned: ["available"],
   closed: ["available"],
   given: [],

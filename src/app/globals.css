@@ -62,7 +62,9 @@ a { color: inherit; }
 .login input[type="file"], .login label { max-width: 100%; min-width: 0; }
 @media (max-width: 640px) { .hero { padding-top: 32px; padding-bottom: 32px; } .card { padding: 20px; } }
 
-.filters { display: grid; gap: 8px; grid-template-columns: 2fr 1fr 1fr 1fr auto; margin: 16px 0 24px; }
+.filters { display: grid; gap: 8px; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; margin: 16px 0 24px; }
+/* Page links sit under the grid: previous, position, next, with the ends pinned. */
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 32px; }
 .grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .tile { padding: 16px; }
 .tile a { text-decoration: none; }
@@ -74,7 +76,7 @@ a { color: inherit; }
 .gallery { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
 .gallery img { max-width: 280px; border-radius: var(--radius-card); }
 label { display: grid; gap: 4px; font-weight: 600; }
-@media (max-width: 760px) { .filters { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .filters { grid-template-columns: 1fr; } .pager { gap: 8px; } }
 
 /* Top bar: links wrap onto a second row on narrow screens instead of forcing sideways scroll; 44px tap targets. */
 .navlinks { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0 16px; }

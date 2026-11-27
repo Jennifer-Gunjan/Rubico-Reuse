@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { Ready } from "@/components/Ready";
-import { acceptRequest, fallThrough, markStatus, rejectRequest, sendRequest, withdrawRequest } from "./actions";
+import { acceptRequest, fallThrough, markStatus, recoverLent, rejectRequest, sendRequest, withdrawRequest } from "./actions";
 
 export type Req = { id: string; seeker_id: string; seekerName: string; message: string; offered_items: string | null; status: string };
 export type Contact = { name: string; email: string; teams_handle: string | null } | null;
@@ -16,6 +16,8 @@ export function RequestPanel(p: Props) {
   const [error, setError] = useState<string | null>(null);
   const [msg, setMsg] = useState("");
   const [offered, setOffered] = useState("");
+  const [recovering, setRecovering] = useState(false);
+  const [reason, setReason] = useState("");
   const act = async (f: () => Promise<{ error?: string }>) => { setError((await f()).error ?? null); };
   const run = (f: () => Promise<{ error?: string }>) => start(() => act(f));
   const live = p.status === "available" || p.status === "requested";
@@ -84,7 +86,25 @@ export function RequestPanel(p: Props) {
             message={`The item becomes Available again and ${accepted?.seekerName ?? "the requester"} is told. Contact details stop being shared.`} run={() => act(() => fallThrough(p.listingId))} />
         </div>
       </>}
-      {p.role === "owner" && p.status === "lent" && <button className="btn" disabled={pending} onClick={() => run(() => markStatus(p.listingId, "returned"))}>Mark as returned</button>}
+      {p.role === "owner" && p.status === "lent" && <>
+        <div className="row">
+          <button className="btn" disabled={pending} onClick={() => run(() => markStatus(p.listingId, "returned"))}>Mark as returned</button>
+          <button className="btn secondary" disabled={pending} onClick={() => setRecovering((v) => !v)}>Not returned</button>
+        </div>
+        {recovering && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <h2>Record that it was not returned</h2>
+            <p className="muted">Your item goes back on the board. This note is only visible to you. {accepted?.seekerName ?? "The borrower"} is told the loan was closed, but not what you wrote.</p>
+            <label>What happened?
+              <textarea className="field" style={{ minHeight: 90, padding: 12 }} maxLength={1000} value={reason} onChange={(e) => setReason(e.target.value)} />
+            </label>
+            <button className="btn" style={{ marginTop: 12 }} disabled={pending || !reason.trim()}
+              onClick={() => run(async () => { const r = await recoverLent(p.listingId, reason); if (!r.error) { setRecovering(false); setReason(""); } return r; })}>
+              Save and relist
+            </button>
+          </div>
+        )}
+      </>}
       {p.role === "owner" && p.status === "returned" && <button className="btn" disabled={pending} onClick={() => run(() => markStatus(p.listingId, "available"))}>List again</button>}
       {p.status === "given" && <p className="card">This item has been given. Thank you for reusing.</p>}
     </section>
