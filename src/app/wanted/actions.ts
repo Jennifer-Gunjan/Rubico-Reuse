@@ -28,8 +28,15 @@ export async function respondWanted(id: string, note: string): Promise<{ error?:
   return error ? { error: error.message } : {};
 }
 
-export async function markFulfilled(id: string) {
-  if (!UUID.test(id)) return;
-  await (await supabaseServer()).from("wanted_posts").update({ status: "fulfilled" }).eq("id", id).eq("status", "open");
+export async function markFulfilled(id: string): Promise<{ error?: string }> {
+  if (!UUID.test(id)) return { error: "Post not found." };
+  const { data, error } = await (await supabaseServer())
+    .from("wanted_posts").update({ status: "fulfilled" }).eq("id", id).eq("status", "open").select("id");
+  after(flushOutbox);
   revalidatePath("/wanted");
+  // Zero rows means it was not yours, or somebody already marked it: say so rather than
+  // reloading the page as though it worked.
+  if (error) return { error: "Could not mark this as fulfilled. Please try again." };
+  if (!data?.length) return { error: "This post is already fulfilled, or it is not yours." };
+  return {};
 }

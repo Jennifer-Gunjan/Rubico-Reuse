@@ -7,7 +7,15 @@ export function HaveThis({ id, mine, responded }: { id: string; mine: boolean; r
   const [pending, start] = useTransition();
   const [note, setNote] = useState("");
   const [msg, setMsg] = useState<string | null>(responded ? "You responded. The poster has your contact details." : null);
-  if (mine) return <button className="btn secondary" disabled={pending} onClick={() => start(() => markFulfilled(id))}>{pending ? "Saving…" : "Mark as fulfilled"}</button>;
+  if (mine) return (
+    <>
+      <button className="btn secondary" disabled={pending}
+        onClick={() => start(async () => { const r = await markFulfilled(id); setMsg(r.error ?? null); })}>
+        {pending ? "Saving…" : "Mark as fulfilled"}
+      </button>
+      {msg && <p role="alert" className="error" style={{ marginTop: 8 }}>{msg}</p>}
+    </>
+  );
   if (responded && !pending && msg) return <p className="muted">{msg}</p>;
   return (
     <form onSubmit={(e) => { e.preventDefault(); start(async () => { const r = await respondWanted(id, note); setMsg(r.error ?? "Sent. The poster now has your name, email and Slack email."); }); }} className="login">
