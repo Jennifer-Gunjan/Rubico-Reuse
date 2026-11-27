@@ -1,0 +1,11 @@
+-- lend_recoveries.borrower_id (0010) was added without an index.
+--
+-- Postgres does not index foreign keys automatically, so deleting a profile cascaded into a
+-- sequential scan of this table. That is the employee-leaves path, which is the one deletion
+-- this product actually performs, and it is the same gap 0007 closed for the four tables that
+-- existed at the time.
+--
+-- Caught by the catch-all test added with 0007, which lists any foreign key still missing a
+-- leading index rather than naming the four known ones. A new table was exactly the case it
+-- was written for.
+create index lend_recoveries_borrower on lend_recoveries (borrower_id);
