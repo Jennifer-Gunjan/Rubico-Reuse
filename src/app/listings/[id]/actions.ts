@@ -25,6 +25,19 @@ export async function rejectRequest(listing: string, request: string): Promise<R
 export async function acceptRequest(listing: string, request: string): Promise<R> { return rpc("accept_request", { p_request: request }, listing); }
 export async function fallThrough(listing: string): Promise<R> { return rpc("fall_through", { p_listing: listing }, listing); }
 
+/**
+ * The owner's honest exit from a loan that was never returned. Records why, privately,
+ * and puts the item back on the board. Without this the only way out was to mark the item
+ * Returned, which is untrue and erases the failure from the record.
+ */
+export async function recoverLent(listing: string, reason: string): Promise<R> {
+  if (!UUID.test(listing)) return { error: "Not found." };
+  const note = reason.trim();
+  if (!note) return { error: "Say briefly what happened, so you have a record of it." };
+  if (note.length > 1000) return { error: "Keep the note under 1000 characters." };
+  return rpc("recover_lent", { p_listing: listing, p_reason: note }, listing);
+}
+
 /** The giver's direct status changes the database allows: accepted to given or lent, lent to returned, returned to available. */
 export async function markStatus(listing: string, to: "given" | "lent" | "returned" | "available"): Promise<R> {
   if (!UUID.test(listing)) return { error: "Not found." };
