@@ -6,12 +6,7 @@ import { safeNext } from "@/lib/profile";
 import { liveCount, liveListings } from "@/lib/public";
 import { supabaseServer } from "@/lib/supabase/server";
 import { LoginForm } from "./LoginForm";
-
-const ERRORS: Record<string, string> = {
-  domain: "Only @rubicotech.com and @rubicotech.in accounts can sign in.",
-  signin: "Sign-in did not complete. Please try again.",
-  config: "The app is not configured yet.",
-};
+import { SignInNotice } from "./SignInNotice";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const { error, next } = await searchParams;
@@ -28,7 +23,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
         {!!total && <p className="mono muted">{total} {total === 1 ? "item" : "items"} available now in Haridwar and Dehradun</p>}
         <section className="card signin" aria-labelledby="signin" style={{ marginTop: 32 }}>
           <h2 id="signin">Sign in to request, post or message</h2>
-          {error && <p className="error" role="alert">{ERRORS[error] ?? ERRORS.signin}</p>}
+          <SignInNotice code={error} />
           <LoginForm next={next ? safeNext(next, "") || undefined : undefined} />
         </section>
         <h2 style={{ marginTop: 40 }}>Available now</h2>
