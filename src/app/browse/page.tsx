@@ -7,7 +7,9 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 type SP = { q?: string; category?: string; location?: string; type?: string; sort?: string; page?: string };
 
-export const metadata = { title: "Browse" };
+// Kept out of search results by decision: this page lists colleagues' items.
+// robots.txt asks crawlers not to fetch it; this is what keeps it out of results if one does.
+export const metadata = { title: "Browse", robots: { index: false, follow: false } };
 
 /** Keeps the current search on the link, changing only the page. */
 function pageHref(sp: SP, page: number) {

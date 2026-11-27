@@ -61,3 +61,24 @@ describe("validateProfile", () => {
     expect(Object.keys(PROFILE_ERRORS)).toContain(code);
   });
 });
+
+describe("isPublicPath", () => {
+  it("lets a signed-out visitor read the preview", () => {
+    for (const p of ["/", "/browse", "/listings/0c6e6e6e-1111-4222-8333-444444444444"])
+      expect(isPublicPath(p), p).toBe(true);
+  });
+  it("serves the files a browser and a crawler ask for before sign-in", () => {
+    // Without these the middleware handed a crawler a login page instead of robots.txt,
+    // and signed-out visitors got no tab icon.
+    expect(isPublicPath("/robots.txt")).toBe(true);
+    expect(isPublicPath("/icon.svg")).toBe(true);
+  });
+  it("still keeps the signed-in pages behind sign-in", () => {
+    for (const p of ["/my", "/wanted", "/profile", "/notifications", "/listings/new"])
+      expect(isPublicPath(p), p).toBe(false);
+  });
+  it("does not open anything that merely looks like a public path", () => {
+    for (const p of ["/browse/secret", "/robots.txt/../my", "/listings/", "/icon.svg.map"])
+      expect(isPublicPath(p), p).toBe(false);
+  });
+});
