@@ -30,9 +30,11 @@ jobs:
     # Both live jobs use the same test accounts: queue them (also across runs), never cancel one midway.
     concurrency: { group: live-accounts, cancel-in-progress: false }
     env:
-      # URL and publishable key are public (they ship in the website), so a missing secret falls back to them.
-      LIVE_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL || 'https://mdznlxohnjfbybihbtfe.supabase.co' }}
-      LIVE_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY || 'sb_publishable_Ewt_4WTCXYOsfIn6IUydMg_tefg8Xjp' }}
+      # No fallback to the production project. These jobs create and delete real rows, so the
+      # database they point at must be chosen on purpose. Setting LIVE_SUPABASE_URL to a
+      # scratch project is then a secrets change rather than a code change.
+      LIVE_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL }}
+      LIVE_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY }}
       LIVE_TEST_EMAIL: ${{ secrets.LIVE_TEST_EMAIL }}
       LIVE_TEST_PASSWORD: ${{ secrets.LIVE_TEST_PASSWORD }}
     steps:
@@ -91,8 +93,9 @@ jobs:
     # Both live jobs use the same test accounts: queue them (also across runs), never cancel one midway.
     concurrency: { group: live-accounts, cancel-in-progress: false }
     env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL || 'https://mdznlxohnjfbybihbtfe.supabase.co' }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY || 'sb_publishable_Ewt_4WTCXYOsfIn6IUydMg_tefg8Xjp' }}
+      # Same reasoning as live-api: no silent fallback to production.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.LIVE_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.LIVE_SUPABASE_ANON_KEY }}
       E2E_EMAIL: ${{ secrets.LIVE_TEST_EMAIL }}
       E2E_PASSWORD: ${{ secrets.LIVE_TEST_PASSWORD }}
       E2E_EMAIL_2: ${{ secrets.LIVE_TEST_EMAIL_2 }}
@@ -104,7 +107,7 @@ jobs:
       - name: Fail if secrets are missing (otherwise the journey would silently skip)
         run: |
           missing=""
-          for v in E2E_EMAIL E2E_PASSWORD E2E_EMAIL_2 E2E_PASSWORD_2; do
+          for v in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY E2E_EMAIL E2E_PASSWORD E2E_EMAIL_2 E2E_PASSWORD_2; do
             [ -n "${!v}" ] || missing="$missing $v"
           done
           [ -z "$missing" ] || { echo "Missing (set LIVE_TEST_EMAIL, LIVE_TEST_PASSWORD, LIVE_TEST_EMAIL_2, LIVE_TEST_PASSWORD_2):$missing"; exit 1; }
