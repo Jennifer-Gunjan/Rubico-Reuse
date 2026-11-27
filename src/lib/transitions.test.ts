@@ -10,6 +10,7 @@ const SPEC = [
   `requested>available:${ALL}`,
   `requested>accepted:${ALL}`,
   `accepted>given:${NON_LEND}`,
+  `given>accepted:${NON_LEND}`,   // the correction window (0014)
   `accepted>lent:lend`,
   `lent>returned:lend`,
   `lent>available:lend`,        // the owner recorded it as not returned (0010)
@@ -39,8 +40,17 @@ describe("listing transition matrix", () => {
     }
   }
 
-  it("Given is final", () => {
+  it("Given is final apart from the correction window", () => {
+    // 0014 allows given -> accepted so a misclick can be taken back. The window itself is
+    // enforced by undo_given in the database; this only pins the shape of the move.
     for (const type of LISTING_TYPES)
-      for (const to of LISTING_STATUSES) expect(canTransition("given", to, type)).toBe(false);
+      for (const to of LISTING_STATUSES) {
+        const correction = to === "accepted" && type !== "lend";
+        expect(canTransition("given", to, type), `${type}: given -> ${to}`).toBe(correction);
+      }
+  });
+
+  it("a lend listing never reaches Given, so it has nothing to take back", () => {
+    for (const to of LISTING_STATUSES) expect(canTransition("given", to, "lend")).toBe(false);
   });
 });

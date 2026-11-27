@@ -27,6 +27,12 @@ export async function rejectRequest(listing: string, request: string): Promise<R
 export async function acceptRequest(listing: string, request: string): Promise<R> { return rpc("accept_request", { p_request: request }, listing); }
 export async function fallThrough(listing: string): Promise<R> { return rpc("fall_through", { p_listing: listing }, listing); }
 
+/** Takes back a mistaken "Given", within the correction window the database enforces. */
+export async function undoGiven(listing: string): Promise<R> {
+  if (!UUID.test(listing)) return { error: "Not found." };
+  return rpc("undo_given", { p_listing: listing }, listing);
+}
+
 /**
  * The owner's honest exit from a loan that was never returned. Records why, privately,
  * and puts the item back on the board. Without this the only way out was to mark the item
