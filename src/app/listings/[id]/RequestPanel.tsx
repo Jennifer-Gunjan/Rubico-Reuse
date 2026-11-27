@@ -2,7 +2,7 @@
 import { useState, useTransition } from "react";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { Ready } from "@/components/Ready";
-import { acceptRequest, fallThrough, markStatus, recoverLent, rejectRequest, sendRequest, withdrawRequest } from "./actions";
+import { acceptRequest, fallThrough, markStatus, recoverLent, rejectRequest, sendRequest, undoGiven, withdrawRequest } from "./actions";
 
 export type Req = { id: string; seeker_id: string; seekerName: string; message: string; offered_items: string | null; status: string };
 export type Contact = { name: string; email: string; teams_handle: string | null } | null;
@@ -106,7 +106,19 @@ export function RequestPanel(p: Props) {
         )}
       </>}
       {p.role === "owner" && p.status === "returned" && <button className="btn" disabled={pending} onClick={() => run(() => markStatus(p.listingId, "available"))}>List again</button>}
-      {p.status === "given" && <p className="card">This item has been given. Thank you for reusing.</p>}
+      {p.status === "given" && (
+        <div className="card">
+          <p>This item has been given. Thank you for reusing.</p>
+          {p.role === "owner" && (
+            <>
+              <p className="muted">Marked it by mistake? You can put it back for a day afterwards.</p>
+              <button className="btn secondary" disabled={pending} onClick={() => run(() => undoGiven(p.listingId))}>
+                Put it back
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </section>
   );
 }

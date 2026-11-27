@@ -20,12 +20,12 @@ const MOVES: Record<ListingStatus, ListingStatus[]> = {
   lent: ["returned", "available"],   // available = recorded as not returned
   returned: ["available"],
   closed: ["available"],
-  given: [],
+  given: ["accepted"],   // only within the correction window (0014)
 };
 
 export function canTransition(from: ListingStatus, to: ListingStatus, type: ListingType): boolean {
   if (!MOVES[from].includes(to)) return false;
-  if (to === "given") return type !== "lend";
+  if (to === "given" || (from === "given" && to === "accepted")) return type !== "lend";
   if (to === "lent" || from === "lent" || from === "returned") return type === "lend";
   return true;
 }
