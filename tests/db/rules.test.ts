@@ -184,9 +184,16 @@ describe("wanted board and profiles", () => {
     expect(n).toEqual([{ type: "wanted_response" }]);
   });
 
-  it("users cannot make themselves admin or change their email", async () => {
-    await expect(as(db, alice, () => db.query(`update profiles set role = 'admin' where id = $1`, [alice]))).rejects.toThrow();
+  it("users cannot change their email", async () => {
     await expect(as(db, alice, () => db.query(`update profiles set email = 'a@rubicotech.in' where id = $1`, [alice]))).rejects.toThrow();
+  });
+  it("has no privilege column to escalate into", async () => {
+    // 0008 dropped `role`. Previously a user was blocked from setting it by a column grant;
+    // now there is nothing to set, which is a stronger guarantee than a denied update.
+    const { rows } = await db.query<{ column_name: string }>(
+      `select column_name from information_schema.columns
+       where table_schema = 'public' and table_name = 'profiles'`);
+    expect(rows.map((r) => r.column_name)).not.toContain("role");
   });
   it("owner can edit while Available; type and owner can never change", async () => {
     const l = await mkListing(db, owner);
