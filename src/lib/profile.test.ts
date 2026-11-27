@@ -72,6 +72,8 @@ describe("isPublicPath", () => {
     // and signed-out visitors got no tab icon.
     expect(isPublicPath("/robots.txt")).toBe(true);
     expect(isPublicPath("/icon.svg")).toBe(true);
+    // an uptime checker has no session, so the health endpoint must answer without one
+    expect(isPublicPath("/api/health")).toBe(true);
   });
   it("still keeps the signed-in pages behind sign-in", () => {
     for (const p of ["/my", "/wanted", "/profile", "/notifications", "/listings/new"])
