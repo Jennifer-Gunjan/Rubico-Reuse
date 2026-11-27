@@ -12,6 +12,7 @@ const SPEC = [
   `accepted>given:${NON_LEND}`,
   `accepted>lent:lend`,
   `lent>returned:lend`,
+  `lent>available:lend`,        // the owner recorded it as not returned (0010)
   `returned>available:lend`,
   `accepted>available:${ALL}`,
   `available>closed:${ALL}`,
