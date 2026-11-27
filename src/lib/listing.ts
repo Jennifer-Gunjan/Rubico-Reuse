@@ -40,6 +40,15 @@ export const cleanSearch = (q: string) => q.replace(/[,()%_\\*]/g, " ").trim().s
 export const freePositions = (kept: number[], count: number) =>
   [0, 1, 2, 3].filter((p) => !kept.includes(p)).slice(0, count);
 
+/** Mirrors the message and offered_items constraints on the requests table. */
+export function validateRequest(message: string, offered?: string): string | null {
+  const m = message.trim();
+  if (!m) return "Write a short message so the giver knows who you are.";
+  if (m.length > 1000) return "Keep your message under 1000 characters.";
+  if ((offered ?? "").trim().length > 1000) return "Keep what you are offering under 1000 characters.";
+  return null;
+}
+
 export type WantedInput = { title: string; description: string; category: string; location: string };
 
 export function validateWanted(i: WantedInput): string | null {

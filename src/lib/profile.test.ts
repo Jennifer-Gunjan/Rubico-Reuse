@@ -32,3 +32,32 @@ describe("isPublicPath", () => {
       expect(isPublicPath(p), p).toBe(false);
   });
 });
+
+import { PROFILE_ERRORS, validateProfile } from "./profile";
+const LOC = ["Haridwar", "Dehradun"] as const;
+const good = { name: "Asha", location: "Dehradun", teams_handle: "asha@rubicotech.com" };
+
+describe("validateProfile", () => {
+  it("accepts a complete profile", () => expect(validateProfile(good, LOC)).toBeNull());
+  it("needs a name", () => expect(validateProfile({ ...good, name: "  " }, LOC)).toBe("name"));
+  it("needs a city the dropdown offers", () => {
+    expect(validateProfile({ ...good, location: "" }, LOC)).toBe("city");
+    expect(validateProfile({ ...good, location: "Delhi" }, LOC)).toBe("city");
+  });
+  it("needs a Slack email", () => expect(validateProfile({ ...good, teams_handle: " " }, LOC)).toBe("handle"));
+  it("accepts either an address or a Slack handle", () => {
+    // The product disagrees with itself: the column is teams_handle and fixtures store
+    // "@alice", but the form says "Slack email". Both reach a person, so both are allowed.
+    for (const ok of ["asha@rubicotech.com", "@asha", "asha", "asha.t", "e2e-winston"])
+      expect(validateProfile({ ...good, teams_handle: ok }, LOC), ok).toBeNull();
+  });
+  it("rejects text that cannot reach anyone", () => {
+    // This value is emailed to a matched colleague, so unreachable text breaks the hand-over.
+    for (const bad of ["not-an-email-at-all-!!!", "a b", "@", "!!!", "a", "asha@rubico tech.com"])
+      expect(validateProfile({ ...good, teams_handle: bad }, LOC), bad).toBe("handle_format");
+  });
+  it("returns codes, never sentences, so the page never renders text from the URL", () => {
+    const code = validateProfile({ ...good, name: "" }, LOC)!;
+    expect(Object.keys(PROFILE_ERRORS)).toContain(code);
+  });
+});
