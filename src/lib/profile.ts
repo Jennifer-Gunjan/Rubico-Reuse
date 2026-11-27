@@ -10,7 +10,7 @@ export function safeNext(next: string | null | undefined, fallback = "/browse"):
 
 /** Pages a visitor may read without signing in: the landing page, Browse and a single listing. */
 export const isPublicPath = (p: string) =>
-  ["/", "/browse", "/auth/callback", "/api/cron/emails"].includes(p) || /^\/listings\/[0-9a-f-]{36}$/i.test(p);
+  ["/", "/browse", "/auth/callback", "/api/cron/emails", "/robots.txt", "/icon.svg"].includes(p) || /^\/listings\/[0-9a-f-]{36}$/i.test(p);
 
 /**
  * A way to reach someone on Slack: either an address (name@host.tld) or a handle
