@@ -11,13 +11,37 @@ export function LoginForm({ next }: { next?: string }) {
   // Remember where to go after sign-in in a short-lived cookie (a query string on the redirect URL would not match Supabase's allow-list).
   const remember = () => { if (next) document.cookie = `reuse_next=${encodeURIComponent(next)}; path=/; max-age=1800; samesite=lax`; };
 
+  const UNAVAILABLE = "Google sign-in is not available right now. Use the email link instead.";
+
+  /**
+   * signInWithOAuth builds the provider URL in the browser and navigates straight to it,
+   * so it never reports that a provider is switched off: the person simply lands on a raw
+   * JSON error page outside the app, with no way back. Ask Supabase which providers are on
+   * before leaving. If the question itself fails, carry on rather than block a working
+   * sign-in on a failed probe.
+   */
+  async function googleIsOn(): Promise<boolean> {
+    try {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const res = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } });
+      if (!res.ok) return true;
+      const settings = await res.json();
+      return settings?.external?.google !== false;
+    } catch {
+      return true;
+    }
+  }
+
   async function google() {
+    setNote(null);
+    if (!(await googleIsOn())) return setNote(UNAVAILABLE);
     remember();
     const { error } = await supabaseBrowser().auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirectTo() },
     });
-    if (error) setNote("Google sign-in is not available right now. Use the email link instead.");
+    if (error) setNote(UNAVAILABLE);
   }
 
   async function magicLink(e: React.FormEvent) {
