@@ -58,7 +58,7 @@ Important design points:
 
 ## 3. Tech stack
 
-Next.js 15 (App Router, TypeScript) · Supabase (Postgres, Auth, Storage) · Vercel · Nodemailer over SMTP · Vitest · PGlite (in-process Postgres for tests) · Playwright and axe-core · GitHub Actions. Node 22 is required.
+Next.js 15 (App Router, TypeScript) · Supabase (Postgres, Auth, Storage) · Vercel · Nodemailer over SMTP · Vitest · PGlite (in-process Postgres for tests) · Playwright and axe-core · GitHub Actions. **Node 22 or newer** (declared in `package.json`; CI pins 22).
 
 ## 4. Project layout
 
@@ -84,7 +84,7 @@ docs/                    Handover, release notes, demo and UAT
 
 ## 5. Run it on your computer
 
-You need Git, **Node.js 22**, and a Supabase project (see section 6 if you do not have one yet).
+You need Git, **Node.js 22 or newer**, and a Supabase project (see section 6 if you do not have one yet).
 
 ```bash
 git clone https://github.com/Jennifer-Gunjan/Rubico-Reuse.git
