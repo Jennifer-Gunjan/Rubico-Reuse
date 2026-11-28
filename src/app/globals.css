@@ -13,6 +13,7 @@
   --accent: #ca352b;
   --accent-active: #a82e25;
   --accent-soft: #e4a59d;
+  --live: #2f6b4f;        /* available: a muted green that sits with the vermilion */
   --dark: #2a2a2a;
   --radius-control: 6px;
   --radius-card: 8px;
@@ -63,6 +64,10 @@ a { color: inherit; }
 @media (max-width: 640px) { .hero { padding-top: 32px; padding-bottom: 32px; } .card { padding: 20px; } }
 
 .filters { display: grid; gap: 8px; grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; margin: 16px 0 24px; }
+/* The accent belongs to the page's main action. Search is a utility, so it takes the
+   secondary treatment and "Post an item" stays the one red thing in the header. */
+.filters .btn { background: transparent; color: var(--ink); border-color: var(--dark); }
+.filters .btn:hover { background: var(--surface); }
 /* Page links sit under the grid: previous, position, next, with the ends pinned. */
 .pager { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 32px; }
 .grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
@@ -71,8 +76,13 @@ a { color: inherit; }
 .imgbox { position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; border-radius: var(--radius-control); background: var(--surface); display: grid; place-items: center; }
 .tile h2 { font-size: 1.125rem; margin: 8px 0 0; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 600; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink); display: inline-block; }
+/* Status is information, not decoration: Available and Requested each get their own colour
+   rather than the common case borrowing body-text black. The word carries the meaning too,
+   so nothing depends on seeing the difference. */
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--live); display: inline-block; }
 .dot.hot { background: var(--accent); }
+.badge { color: var(--live); }
+.badge:has(.dot.hot) { color: var(--accent); }
 .gallery { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
 .gallery img { max-width: 280px; border-radius: var(--radius-card); }
 label { display: grid; gap: 4px; font-weight: 600; }
@@ -113,6 +123,8 @@ img { max-width: 100%; }
 .icon { font-size: 3rem; line-height: 1; }
 .price { font-family: "Inter Tight Variable", system-ui, sans-serif; font-weight: 700; font-size: 1.25rem; margin: 4px 0 0; }
 .tile p { margin: 4px 0; }
+/* Each fact keeps its separator, so a line never starts with a stray "·". */
+.tile .seg { white-space: nowrap; }
 
 /* How it works */
 .steps { list-style: none; padding: 0; margin: 0 0 16px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
