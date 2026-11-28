@@ -45,15 +45,19 @@ describe("validateProfile", () => {
     expect(validateProfile({ ...good, location: "Delhi" }, LOC)).toBe("city");
   });
   it("needs a Slack email", () => expect(validateProfile({ ...good, teams_handle: " " }, LOC)).toBe("handle"));
-  it("accepts either an address or a Slack handle", () => {
-    // The product disagrees with itself: the column is teams_handle and fixtures store
-    // "@alice", but the form says "Slack email". Both reach a person, so both are allowed.
-    for (const ok of ["asha@rubicotech.com", "@asha", "asha", "asha.t", "e2e-winston"])
+  it("accepts an address, on any domain", () => {
+    // Not restricted to Rubico: a colleague's Slack address need not match their sign-in domain.
+    for (const ok of ["asha@rubicotech.com", "asha.t@rubicotech.in", "a.b-c@mail.example.co.uk"])
       expect(validateProfile({ ...good, teams_handle: ok }, LOC), ok).toBeNull();
   });
-  it("rejects text that cannot reach anyone", () => {
-    // This value is emailed to a matched colleague, so unreachable text breaks the hand-over.
-    for (const bad of ["not-an-email-at-all-!!!", "a b", "@", "!!!", "a", "asha@rubico tech.com"])
+  it("rejects a handle, now that the field is an address", () => {
+    // Settled with the product owner. A handle is not something the recipient can write to,
+    // and this value is emailed to a matched colleague as the way to reach them.
+    for (const bad of ["@asha", "asha", "e2e-winston", "asha.t"])
+      expect(validateProfile({ ...good, teams_handle: bad }, LOC), bad).toBe("handle_format");
+  });
+  it("still rejects text that is not an address at all", () => {
+    for (const bad of ["not-an-email-at-all-!!!", "a b@c.com", "@rubicotech.com", "asha@rubicotech", "asha@"])
       expect(validateProfile({ ...good, teams_handle: bad }, LOC), bad).toBe("handle_format");
   });
   it("returns codes, never sentences, so the page never renders text from the URL", () => {

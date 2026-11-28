@@ -18,6 +18,7 @@ export async function signIn(context: BrowserContext, baseURL: string, email: st
   if (error) throw new Error(`E2E sign-in failed for ${email}: ${error.message}`);
   await context.addCookies([...jar].map(([name, value]) => ({ name, value, url: baseURL })));
   // Make sure the profile is complete so posting and requesting are allowed.
-  await sb.from("profiles").update({ name: email.split("@")[0], location: "Dehradun", teams_handle: `e2e-${email.split("@")[0]}` }).eq("id", data.user.id);
+  // teams_handle is the sign-in address: since 0015 the product requires an address, not a handle.
+  await sb.from("profiles").update({ name: email.split("@")[0], location: "Dehradun", teams_handle: email }).eq("id", data.user.id);
   return data.user.email!;
 }
