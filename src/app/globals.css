@@ -68,6 +68,12 @@ a { color: inherit; }
 .grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .tile { padding: 16px; }
 .tile a { text-decoration: none; }
+/* The link fills the card, so the clickable area matches what looks clickable. Colour is
+   inherited so the card does not read as one large hyperlink. */
+.tilelink { display: block; color: inherit; }
+/* Focus lands on the card rather than on the photo inside it. */
+.tile:has(.tilelink:focus-visible) { outline: 2px solid var(--ink); outline-offset: 2px; }
+.tilelink:focus-visible { outline: none; }
 .imgbox { position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; border-radius: var(--radius-control); background: var(--surface); display: grid; place-items: center; }
 .tile h2 { font-size: 1.125rem; margin: 8px 0 0; }
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; font-weight: 600; }
