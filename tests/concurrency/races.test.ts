@@ -35,8 +35,10 @@ describe.skipIf(!url)("races on a real Postgres", () => {
     asUser(uid, async (c) => (await c.query<{ create_request: string }>(`select create_request($1, 'please')`, [listing])).rows[0].create_request);
 
   async function user(name: string) {
-    const [{ id }] = await q<{ id: string }>(`insert into auth.users (email) values ($1) returning id`, [`${name}${++n}@rubicotech.com`]);
-    await q(`update profiles set name = $2, location = 'Haridwar', teams_handle = $2 where id = $1`, [id, name]);
+    const email = `${name}${++n}@rubicotech.com`;
+    const [{ id }] = await q<{ id: string }>(`insert into auth.users (email) values ($1) returning id`, [email]);
+    // teams_handle is an address since 0015, so store the sign-in address rather than the name.
+    await q(`update profiles set name = $2, location = 'Haridwar', teams_handle = $3 where id = $1`, [id, name, email]);
     return id;
   }
   async function listing(owner: string) {
