@@ -7,7 +7,7 @@ import { Ready } from "@/components/Ready";
 import { CATEGORIES, CONDITIONS, LOCATIONS, freePositions, type ListingInput } from "@/lib/listing";
 import { extFor, photoUrl, uploadPhoto } from "@/lib/photo";
 import { supabaseBrowser } from "@/lib/supabase/browser";
-import { updateListing } from "@/app/my/actions";
+import { reorderPhotos, updateListing } from "@/app/my/actions";
 
 type Img = { id: string; storage_path: string; position: number };
 
@@ -29,7 +29,13 @@ export function EditForm({ id, uid, initial, images }: { id: string; uid: string
       await sb.from("listing_images").delete().in("id", gone.map((g) => g.id));
       await sb.storage.from("listing-images").remove(gone.map((g) => g.storage_path));
     }
-    const slots = freePositions(kept.map((k) => k.position), files.length);
+    // Renumber what is left into the order shown, so the first photo is the cover and any
+    // gap a deletion left is closed. New photos then fill the slots after them.
+    if (kept.length) {
+      const r = await reorderPhotos(id, kept.map((k) => k.id));
+      if (r.error) return setError(r.error);
+    }
+    const slots = freePositions(kept.map((_, i) => i), files.length);
     let used = 0, failed = 0;
     for (const [n, file] of files.slice(0, slots.length).entries()) {
       if (await uploadPhoto(sb, `${uid}/${id}-${Date.now()}-${n}.${extFor(file)}`, file, id, slots[used])) used++; else failed++;
@@ -54,10 +60,15 @@ export function EditForm({ id, uid, initial, images }: { id: string; uid: string
       <fieldset style={{ border: 0, padding: 0 }}>
         <legend style={{ fontWeight: 600 }}>Photos ({kept.length + files.length} of 4)</legend>
         <div className="gallery">
-          {kept.map((k) => (
+          {kept.map((k, i) => (
             <div key={k.id}>
               <Image src={photoUrl(k.storage_path)} alt="" width={120} height={90} sizes="120px" style={{ objectFit: "cover" }} />
-              <button type="button" className="btn secondary" onClick={() => setKept(kept.filter((x) => x.id !== k.id))}>Remove</button>
+              {i === 0
+                ? <span className="mono muted">Cover photo</span>
+                : <button type="button" className="btn secondary"
+                    onClick={() => setKept([k, ...kept.filter((x) => x.id !== k.id)])}>Make cover</button>}
+              <button type="button" className="btn secondary" aria-label={`Remove photo ${i + 1}`}
+                onClick={() => setKept(kept.filter((x) => x.id !== k.id))}>Remove</button>
             </div>
           ))}
         </div>
