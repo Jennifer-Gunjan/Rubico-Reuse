@@ -18,7 +18,6 @@ Rubico colleagues in Haridwar and Dehradun donate, exchange, sell and lend items
 - Phone layout checked at 375px; contrast checked against WCAG AA.
 
 ## Known limits (accepted for v1)
-- Banned-word list needs the product owner's confirmation.
 - Gmail SMTP sender: about 500 emails a day, may reach spam at first.
 - Supabase sign-in email link is rate limited on the built-in sender; use Google sign-in for UAT.
 - No admin screen, chat, ratings, payments, maps, image resizing.
@@ -29,7 +28,7 @@ Rubico colleagues in Haridwar and Dehradun donate, exchange, sell and lend items
 1. Merge PR #22, add `SMTP_USER` / `SMTP_PASS` in Vercel, send one test notification.
 2. Apply migrations 0001 to 0005 (done up to 0004 earlier; 0005 for the preview).
 3. Add UAT colleagues as Google test users if the consent screen is External.
-4. Confirm the banned-word list; confirm Supabase backup plan; take the first dump.
+4. Confirm Supabase backup plan; take the first dump. (The banned-word list is confirmed and now lives in the `banned_keywords` table, so changing it needs no release.)
 5. Delete `[E2E]` and demo data: `delete from listings where title like '[E2E]%';` and `supabase/seed_remove.sql`.
 
 ## Rollback

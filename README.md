@@ -35,7 +35,7 @@ An internal marketplace where Rubico colleagues in **Haridwar** and **Dehradun**
 | Contact sharing | Name, email and Slack email are shared **only between the two matched people** after Accept |
 | Wanted board | Post what you need; colleagues answer "I have this"; mark fulfilled |
 | Notifications | In-app list with a count in the menu, plus emails (with retries) |
-| Safety | Banned-item keyword filter on listings and wanted posts; "Report this listing" goes to the product owner |
+| Safety | Banned-item keyword filter on listings and wanted posts, enforced by the database; "Report this listing" goes to the product owner |
 
 ## 2. How it works
 
@@ -230,6 +230,23 @@ delete from listings where id = '<listing id>';          -- take a listing down
 | Emails not arriving | Check `SMTP_USER`/`SMTP_PASS` in Vercel, the spam folder, and `notifications.email_status` in Supabase (`pending`, `sent`, `failed`) |
 | CI job fails with "secrets are missing" | Add the four `LIVE_TEST_*` secrets under GitHub → Settings → Secrets and variables → Actions |
 | Local `localhost` Postgres tests skip | Concurrency and live tests need their environment variables; `npm test` alone is enough for everyday work |
+
+## 12a. Changing the banned-item list
+
+The list is confirmed, and lives in the `banned_keywords` table rather than in code, so adding
+or removing a word needs no release. In the Supabase SQL editor:
+
+```sql
+insert into banned_keywords (word) values ('newword');   -- add
+delete from banned_keywords where word = 'oldword';      -- remove
+select word from banned_keywords order by word;          -- review
+```
+
+Matching is case-insensitive and on whole words, so "gun" would not match "gunpowder". Bare
+"gun", "tablet" and "knife" are left out on purpose: glue guns, tablets and kitchen knives are
+all ordinary things to pass on. `src/lib/banned.ts` holds the same list for the message shown
+in the form; the database is what actually enforces it, so a word added here is enforced even
+if the form is bypassed.
 
 ## 13. Known limits
 

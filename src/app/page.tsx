@@ -8,6 +8,11 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { LoginForm } from "./LoginForm";
 import { SignInNotice } from "./SignInNotice";
 
+// The preview grid below renders live item titles, so this page is kept out of search
+// results for the same reason Browse is: those items belong to the colleagues who listed
+// them. The page stays reachable by link, which is how people get here anyway.
+export const metadata = { robots: { index: false, follow: false } };
+
 export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const { error, next } = await searchParams;
   const sb = await supabaseServer();
