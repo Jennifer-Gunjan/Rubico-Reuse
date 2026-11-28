@@ -45,7 +45,8 @@ describe("highest-risk rules", () => {
     expect(await cardsOf(owner, alice)).toHaveLength(0);
 
     await call(owner, "accept_request", ra);
-    expect(await cardsOf(alice, owner)).toEqual([{ email: "owner@rubicotech.com", teams_handle: "@owner" }]);
+    // teams_handle is an address since 0015, so the fixture stores the sign-in address.
+    expect(await cardsOf(alice, owner)).toEqual([{ email: "owner@rubicotech.com", teams_handle: "owner@rubicotech.com" }]);
     expect(await cardsOf(owner, alice)).toHaveLength(1);
     expect(await cardsOf(bob, owner)).toHaveLength(0); // auto-rejected seeker sees nothing
     expect(await cardsOf(bob, alice)).toHaveLength(0);

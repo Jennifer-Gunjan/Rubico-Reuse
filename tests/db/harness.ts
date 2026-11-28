@@ -39,7 +39,8 @@ export async function mkUser(db: Db, email: string, name = email.split("@")[0]) 
   const id = rows[0].id;
   await db.query(
     `update profiles set name = $2, location = 'Haridwar', teams_handle = $3 where id = $1`,
-    [id, name, `@${name}`]);
+    // an address, matching what the product requires since 0015
+    [id, name, email]);
   return id;
 }
 
