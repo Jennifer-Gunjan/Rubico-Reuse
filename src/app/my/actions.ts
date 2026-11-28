@@ -22,6 +22,18 @@ export async function reopenListing(id: string): Promise<{ error?: string }> {
   return error || !data?.length ? { error: "Could not relist this item. Please try again." } : {};
 }
 
+/**
+ * Renumbers a listing's photos so the first in the list becomes the cover. Also closes the
+ * gap a deleted cover leaves, which is what made an item look photo-less on Browse.
+ */
+export async function reorderPhotos(id: string, photoIds: string[]): Promise<{ error?: string }> {
+  if (!UUID.test(id) || !photoIds.every((p) => UUID.test(p))) return { error: "Listing not found." };
+  if (!photoIds.length) return {};
+  const { error } = await (await supabaseServer()).rpc("reorder_listing_photos", { p_listing: id, p_ids: photoIds });
+  revalidatePath(`/listings/${id}`);
+  return error ? { error: "Could not reorder the photos. Please try again." } : {};
+}
+
 export async function updateListing(id: string, input: ListingInput): Promise<{ error?: string }> {
   if (!UUID.test(id)) return { error: "Listing not found." };
   const err = validateListing(input);
