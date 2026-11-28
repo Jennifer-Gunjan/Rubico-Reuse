@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { CATEGORY_ICON, CONDITIONS, priceLabel, timeAgo } from "@/lib/listing";
@@ -21,7 +22,18 @@ export function ListingGrid({ items }: { items: Tile[] }) {
             </div>
             <h2>{l.title}</h2>
             <p className="price">{priceLabel(l.type, l.asking_price)}</p>
-            <p className="mono muted">{CONDITIONS[l.condition as keyof typeof CONDITIONS]} · {l.category} · {l.location} · {timeAgo(l.created_at)}</p>
+            {/* The separator is glued to the fact before it and the space after it is left
+                breakable, so the line wraps between facts and never starts one with a stray
+                "·". Keeping the space inside the span would stop it wrapping at all. */}
+            <p className="mono muted">
+              {[CONDITIONS[l.condition as keyof typeof CONDITIONS], l.category, l.location, timeAgo(l.created_at)]
+                .map((part, i, all) => (
+                  <Fragment key={part}>
+                    <span className="seg">{part}{i < all.length - 1 ? " ·" : ""}</span>
+                    {i < all.length - 1 ? " " : ""}
+                  </Fragment>
+                ))}
+            </p>
             <p><span className="badge"><i className={l.status === "requested" ? "dot hot" : "dot"} />{l.status === "requested" ? "Requested" : "Available"}</span></p>
           </Link>
         </li>
